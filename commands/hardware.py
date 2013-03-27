@@ -21,20 +21,50 @@ def _get_hardware(hardware_spec, mask=None):
     for hardware in filter(hardware_spec, account_service.getHardware()):
         yield hardware
 
+def _format_hardware(hardware, mask=None, color=True):
+    default_mask = {'id': {},
+            'hostname': {},
+            'fullyQualifiedDomainName': 'fqdn',
+            'primaryIpAddress': 'Public IP',
+            'privateIpAddress': 'Private IP'}
+    merged_mask = merge_dict(default_mask, mask) if mask else default_mask
+    return format_object(hardware, merged_mask, color=color)
+
+def _get_hardware_object_mask(type):
+    pass
+
 def show(args):
     """usage: slapi [options] hardware show [<hardware_spec>]
 
     options:
+        -a, --attributes
         -v, --verbose
         -F, --format
         -h, --help
     """
+    object_mask = {'hardware': {
+                        'lastTransaction': {
+                            'transactionStatus': {}, 
+                            'transactionGroup': {}}}}
+
+    format_mask = {'lastTransaction': {
+                        'createDate': {}, 
+                        'modifyDate':{},
+                        'transactionStatus': {
+                            'friendlyName': 'Name'
+                        },
+                        'transactionGroup': {
+                            'averageTimeToComplete': {},
+                            'name': 'Name'
+                        }
+                  }}
+
     # Parse Arguments
     hardware_spec = parse_hardware_spec(args)
 
     # Show Hardware
-    for hardware in _get_hardware(hardware_spec):
-        pp(hardware)
+    for hardware in _get_hardware(hardware_spec, object_mask):
+        print _format_hardware(hardware, format_mask)
 
 def transactions(args):
     """usage: slapi [options] hardware transactions [<hardware_spec>]
@@ -59,7 +89,7 @@ def transactions(args):
             output += output_attr('Hostname', hardware_hostname, ljust=25) + "\n"
             output += output_attr('Active Transactions', '', ljust=25) + "\n"
             for transaction in hardware_transactions:
-                output += output_attr("Transactions: %s" % (transaction))
+                output += output_attr("Transaction: %s" % (transaction))
             return output
 
     # Parse Arguments

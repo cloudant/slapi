@@ -123,6 +123,7 @@ if __name__ == "__main__":
     # Handle Command
     command = global_args['<command>']
     if command in list(_get_builtin_commands()):
+        # TODO: Built in commands
         pass
     if command in list(_get_installed_commands()):
         # Load command module
