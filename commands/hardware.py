@@ -67,11 +67,10 @@ def transactions(args):
         -h, --help
     """
 
-    object_mask = {'hardware': {
-                        'activeTransactions': {},
-                        'lastTransaction': {
-                            'transactionStatus': {}, 
-                            'transactionGroup': {}}}}
+    object_mask = {'activeTransactions': {},
+                    'lastTransaction': {
+                        'transactionStatus': {}, 
+                        'transactionGroup': {}}}q
 
     # Parse Arguments
     hardware_spec = parse_hardware_spec(args)
