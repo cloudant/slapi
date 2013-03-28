@@ -4,7 +4,7 @@ import sys
 import SoftLayer.API
 
 from util.config import config
-from util.helpers import format_object
+from util.helpers import format_object, pp
 
 def get_account_service(object_id=None):
     return _get_service('SoftLayer_Account', object_id)
@@ -34,29 +34,36 @@ class softlayer_property(object):
     def __delete__(self,inst):
         raise AttributeError("This property is read-only")
 
-def softlayer_property_format(property_name_format=None, property_display=True):
+def softlayer_property_format(property_name=None, property_display=True):
     """factory function for softlayer_property__format_decorator"""
     def softlayer_property_format_decorator(func):
         @softlayer_property
         def wrapped_f(*args):
             return func(*args)
         # set property_format
-        wrapped_f.property_name_format = property_name_format
+        wrapped_f.property_name = property_name
         wrapped_f.property_display = property_display
         return wrapped_f
     return softlayer_property_format_decorator
 
-def softlayer_object_property(object_type, property_name_format=None, property_display=True):
+def softlayer_object_property(object_type, property_name=None, property_display=True):
     """factory function for softlayer_object_property_decorator"""
     def softlayer_object_property_decorator(func):
         @softlayer_property
         def wrapped_f(*args):
-            obj = func(*args)
-            if obj:
-                return object_type(obj)
+            data = func(*args)
+            if isinstance(data, list):
+                objects = []
+                for obj in data:
+                    objects.append(object_type(obj))
+                return objects
             else:
-                return None
-        wrapped_f.property_name_format = property_name_format
+                if data is None:
+                    return None
+                else:
+                    obj = data
+                    return object_type(obj)
+        wrapped_f.property_name = property_name
         wrapped_f.property_display = property_display
         return wrapped_f
     return softlayer_object_property_decorator
@@ -90,16 +97,22 @@ class BaseSoftLayerObject(object):
                 if not property_display:
                     continue
 
-                property_name = getattr(method, 'property_name_format', key)
+                property_name = getattr(method, 'property_name', key)
                 if property_name is None or property_name == key:
                     property_name = string.capwords(' '.join(key.split('_')))
 
                 property_value = method.__get__(self, key)
-                if property_value:
-                    if isinstance(property_value, BaseSoftLayerObject):
-                        if not only_locals:
-                            obj[property_name] = property_value._format(mask, only_locals)
-                    else:
+                if isinstance(property_value, list):
+                    # format each item in the list
+                    obj[property_name] = list()
+                    for property_value_item in property_value:
+                        obj[property_name].append(property_value_item._format(mask, only_locals))
+
+                elif isinstance(property_value, BaseSoftLayerObject):
+                    if property_value:
+                        obj[property_name] = property_value._format(mask, only_locals)
+                else:
+                    if property_value:
                         obj[property_name] = property_value
         return obj
 
@@ -171,7 +184,52 @@ class SoftLayerTransaction(BaseSoftLayerObject):
     def group(self):
         return self['transactionGroup']
 
+class SoftLayerHardwareComponentModel(BaseSoftLayerObject):
+    """SoftLayer_Hardware_Component_Model"""
+
+    def __init__(self, obj):
+        super(SoftLayerHardwareComponentModel, self).__init__(obj)
+
+    @softlayer_property_format(property_display=False)
+    def id(self):
+        return self.data['id']
+
+    @softlayer_property
+    def description(self):
+        return self.data['description']
+
+    @softlayer_property
+    def capacity(self):
+        return self.data['capacity']
+
+    @softlayer_property
+    def manufacturer(self):
+        return self.data['manufacturer']
+
+    @softlayer_property
+    def version(self):
+        return self['version']
+
+    @softlayer_property
+    def name(self):
+        return self['name']
+
+class SoftLayerHardwareComponent(BaseSoftLayerObject):
+    """SoftLayer_Hardware_Component"""
+
+    def __init__(self, obj):
+        super(SoftLayerHardwareComponent, self).__init__(obj)
+
+    @softlayer_property_format(property_display=False)
+    def id(self):
+        return self.data['id']
+
+    @softlayer_object_property(SoftLayerHardwareComponentModel, property_name="Model")
+    def model(self):
+        return self.data['hardwareComponentModel']
+
 class SoftLayerHardwareServer(BaseSoftLayerObject):
+    """SoftLayer_Hardware_Server"""
 
     def __init__(self, obj):
         super(SoftLayerHardwareServer, self).__init__(obj)
@@ -216,6 +274,22 @@ class SoftLayerHardwareServer(BaseSoftLayerObject):
     def datacenter(self):
         return self['datacenter']
 
-    @softlayer_object_property(SoftLayerTransaction, property_name_format="Last Transaction")
+    @softlayer_object_property(SoftLayerTransaction, property_name="Last Transaction")
     def last_transaction(self):
         return self['lastTransaction']
+
+    @softlayer_object_property(SoftLayerTransaction, property_name="Active Transactions")
+    def active_transactions(self):
+        return self['activeTransactions']
+
+    @softlayer_object_property(SoftLayerHardwareComponent, property_name="Processors")
+    def processors(self):
+        return self['processors']
+
+    @softlayer_object_property(SoftLayerHardwareComponent, property_name="Disks")
+    def disks(self):
+        return self['hardDrives']
+
+    @softlayer_object_property(SoftLayerHardwareComponent, property_name="Memory")
+    def memory(self):
+        return self['memory']

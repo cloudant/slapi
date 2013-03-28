@@ -108,8 +108,10 @@ def _handle_subcommand(module, func, subcommand_args):
     func(subcommand_args)
 
 if __name__ == "__main__":
+    # Configure Colors
     configure_colors()
 
+    # Configure Log
     configure_log(log)
 
     # Parse Command Arguments
