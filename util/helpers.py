@@ -10,46 +10,34 @@ COLOR_LABEL = COLORS.Fore.CYAN + COLORS.Style.BRIGHT
 COLOR_RESET = COLORS.Style.RESET_ALL
 
 
-def format_object(obj, mask=None, level=0, color=True):
+def format_object(obj, level=0, color=True):
     output = ""
     if isinstance(obj, dict):
-        output += _format_dict_object(obj, mask, level=level, color=color)
+        output += _format_dict_object(obj, level=level, color=color)
     elif isinstance(obj, list):
-        output += _format_list_object(obj, mask, level=level, color=color)
+        output += _format_list_object(obj, level=level, color=color)
     else:
         output += str(obj) + "\n"
     return output
 
-def _format_dict_object(obj, mask, level, color):
+def _format_dict_object(obj, level, color):
     output = "\n"
-    labels = obj.keys() + filter(lambda v: isinstance(v, str), mask.values())
-    ljust = max(map(lambda k: len(k), labels)) + 2
+    ljust = max(map(lambda k: len(k) if k else 0, obj.keys())) + 4
     # calculate indent level
     output_indent = " "*(level*2)
     # iterate all items in the dict 
     for key, val in obj.iteritems():
-        # if the key is in the mask
-        if key in mask:
-            # if the mask value is a string
-            if isinstance(mask[key], str):
-                # use the value as the label
-                output_key = _format_label(mask[key], ljust, color)
-            else:
-                # use the object key as the label
-                output_key = _format_label(key, ljust, color)
-            print output_key, ljust
-            # format the item value 
-            output_value = format_object(val, mask[key], level+1, color=color)
-            output += output_indent + output_key + output_value
-        else:
-            # dont print the item
-            continue
+        # use the object key as the label
+        output_key = _format_label(key, ljust, color)
+        # format the item value 
+        output_value = format_object(val, level+1, color=color)
+        output += output_indent + output_key + output_value
     return output
 
 def _format_label(label, ljust, color):
     label = label[0].upper() + label[1:]
     if color:
-        ljust += 7 # offset for color escapes
+        ljust += 12 # offset for color escapes
         output_label = "%s%s%s:" % (COLOR_LABEL, label, COLOR_RESET)
     else:
         output_label = "%s:" % (label)

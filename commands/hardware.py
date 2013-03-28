@@ -19,16 +19,7 @@ def _get_hardware(hardware_spec, mask=None):
     account_service = get_account_service()
     account_service.set_object_mask(mask)
     for hardware in filter(hardware_spec, account_service.getHardware()):
-        yield hardware
-
-def _format_hardware(hardware, mask=None, color=True):
-    default_mask = {'id': {},
-            'hostname': {},
-            'fullyQualifiedDomainName': 'fqdn',
-            'primaryIpAddress': 'Public IP',
-            'privateIpAddress': 'Private IP'}
-    merged_mask = merge_dict(default_mask, mask) if mask else default_mask
-    return format_object(hardware, merged_mask, color=color)
+        yield SoftLayerHardwareServer(hardware)
 
 def _get_hardware_object_mask(type):
     pass
@@ -42,29 +33,14 @@ def show(args):
         -F, --format
         -h, --help
     """
-    object_mask = {'hardware': {
-                        'lastTransaction': {
-                            'transactionStatus': {}, 
-                            'transactionGroup': {}}}}
-
-    format_mask = {'lastTransaction': {
-                        'createDate': {}, 
-                        'modifyDate':{},
-                        'transactionStatus': {
-                            'friendlyName': 'Name'
-                        },
-                        'transactionGroup': {
-                            'averageTimeToComplete': {},
-                            'name': 'Name'
-                        }
-                  }}
-
     # Parse Arguments
     hardware_spec = parse_hardware_spec(args)
 
+    object_mask = {'hardware': {'datacenter': {}}} 
+
     # Show Hardware
     for hardware in _get_hardware(hardware_spec, object_mask):
-        print _format_hardware(hardware, format_mask)
+        print hardware.format()
 
 def transactions(args):
     """usage: slapi [options] hardware transactions [<hardware_spec>]
@@ -75,27 +51,13 @@ def transactions(args):
         -h, --help
     """
 
-    def _format_transactions(hardware, fmt=None, color=True):
-        hardware_id = hardware['id']
-        hardware_hostname = hardware['fullyQualifiedDomainName']
-        hardware_transactions = hardware['activeTransactions']
-        if fmt == 'json':
-            return json.dumps({'id': hardware_id,
-                            'hostname': hardware_fqdn,
-                            'transactions': hardware_active_transactions})
-        else:
-            output = ""
-            output += output_attr('Id', hardware_id, ljust=25) + "\n"
-            output += output_attr('Hostname', hardware_hostname, ljust=25) + "\n"
-            output += output_attr('Active Transactions', '', ljust=25) + "\n"
-            for transaction in hardware_transactions:
-                output += output_attr("Transaction: %s" % (transaction))
-            return output
+    object_mask = {'hardware': {
+                        'activeTransactions': {},
+                        'lastTransaction': {
+                            'transactionStatus': {}, 
+                            'transactionGroup': {}}}}
 
     # Parse Arguments
     hardware_spec = parse_hardware_spec(args)
-    mask = {'hardware': {'activeTransactions': {}}}
-    for hardware in _get_hardware(hardware_spec, mask):
-        print _format_transactions(hardware)
-        #hardware_server_service = get_hardware_server_service(hardware['id'])
-        #print hardware_service.getActiveTransactions()
+    for hardware in _get_hardware(hardware_spec, object_mask):
+        print hardware.format()
