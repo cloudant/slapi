@@ -28,10 +28,11 @@ from util.helpers import *
 VERSION = '0.1.0'
 MODULE_DIR = 'commands'
 
+DEFAULT_LOGLEVEL = 'INFO'
 DEFAULT_CONFIGFILE = "%s/.slapi.conf" % (os.path.expanduser("~"))
 
 #==============================================================================
-# Globals
+# Helpers 
 #==============================================================================
 
 def _get_root_directory():
@@ -62,6 +63,7 @@ def _get_module_commands(module):
     for func_name, value in inspect.getmembers(module):
         if not func_name.startswith('_'):
             yield func_name
+
 def _handle_command(module, global_args):
     log.debug("_handle_command: %s" % (module.__name__))
 
@@ -114,13 +116,14 @@ if __name__ == "__main__":
     # Parse Command Arguments
     global_args = docopt.docopt(__doc__, version=VERSION, options_first=True)
 
-    # Configure Log
-    log_level = 'DEBUG' if global_args['--verbose'] else 'INFO'
-    configure_log(log, log_level)
+    loglevel = 'DEBUG' if global_args['--verbose'] else DEFAULT_LOGLEVEL 
+    configfile = global_args['--config'] if global_args['--config'] else DEFAULT_CONFIGFILE
 
     # Load Configuration
-    configfile = global_args['--config'] if global_args['--config'] else DEFAULT_CONFIGFILE
     _load_config(configfile)
+
+    # Configure Log
+    configure_log(log, loglevel)
 
     # Handle Command
     command = global_args['<command>']

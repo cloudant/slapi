@@ -3,7 +3,7 @@ import re
 PATTERN_OBJECTID = re.compile(r'^(\d+)$')
 PATTERN_IPADDR = re.compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
 
-def _identity_spec(o):
+def identity_spec(o):
     return True
 
 def parse_hardware_spec(args):
@@ -31,4 +31,4 @@ def parse_hardware_spec(args):
         hardware_name = spec
         return lambda h: re.search(hardware_name, h['fullyQualifiedDomainName']) != None
     else:
-        return _identity_spec
+        return identity_spec

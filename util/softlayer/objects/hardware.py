@@ -112,7 +112,6 @@ class SoftLayerNetworkComponent(BaseSoftLayerObject):
     def status(self):
         return self['status'].capitalize()
 
-
 class SoftLayerHardwareServer(BaseSoftLayerObject):
     """SoftLayer_Hardware_Server"""
 

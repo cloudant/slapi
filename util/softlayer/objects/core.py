@@ -138,13 +138,9 @@ class SoftLayerTransactionStatus(BaseSoftLayerObject):
     def __init__(self, obj):
         super(SoftLayerTransactionStatus, self).__init__(obj)
 
-    @softlayer_property_format(property_display=False)
+    @softlayer_property
     def name(self):
-        return self.data['name']
-
-    @softlayer_property_format("Name")
-    def pretty_name(self):
-        return self.data['friendlyName']
+        return self.data['friendlyName'] if 'friendlyName' in self.data else self.data['name']
 
 class SoftLayerTransaction(BaseSoftLayerObject):
     """SoftLayer_Provisioning_Version1_Transaction"""

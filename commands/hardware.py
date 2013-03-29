@@ -5,9 +5,8 @@ options:
     -h, --help
 
 commands:
-    hardware show               Show hardware
+    hardware show               Show hardware information
     hardware transactions       List pending hardware transactions
-    hardware reboot             Reboot hardware
 """
 from util.helpers import *
 from util.spec import *
@@ -16,18 +15,10 @@ from util.log import log
 from util.softlayer.service import *
 from util.softlayer.objects.hardware import *
 
-def _get_hardware(hardware_spec, mask=None):
+def _get_hardware(hardware_spec, mask):
     """Generator returning all hardware matching hardware_spec"""
-    account_service = get_account_service()
-    account_service.set_object_mask(None)
-    log.debug("fetching all hardware with %s" % (hardware_spec))
-    for hardware in filter(hardware_spec, account_service.getHardware()):
-        log.debug("fetching hardware server %d" % (hardware['id']))
-        hardware_service = get_hardware_server_service(hardware['id'])
-        hardware_service.set_object_mask(mask)
-        hardware = hardware_service.getObject()
-        pp(hardware)
-        yield SoftLayerHardwareServer(hardware)
+    for obj in get_objects('SoftLayer_Hardware_Server', 'getHardware', hardware_spec, mask):
+        yield SoftLayerHardwareServer(obj)
 
 def _get_hardware_object_mask(properties):
     """Return an object mask for the given list of propeties"""
@@ -85,12 +76,10 @@ def show(args):
         print hardware.format()
 
 def transactions(args):
-    """usage: slapi [options] hardware transactions [<hardware_spec>]
+    """usage: slapi hardware transactions [options] [<hardware_spec>]
 
     options:
-        -v, --verbose
-        -F, --format
-        -h, --help
+
     """
 
     object_mask = {'activeTransactions': {},
