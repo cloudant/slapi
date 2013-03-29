@@ -1,0 +1,7 @@
+PyYAML==3.10
+SoftLayer==2.1.0
+colorama==0.2.5
+distribute==0.6.35
+docopt==0.6.1
+requests==1.1.0
+wsgiref==0.1.2
