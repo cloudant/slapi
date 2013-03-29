@@ -10,10 +10,11 @@ commands:
     hardware reboot             Reboot hardware
 """
 from util.helpers import *
-from util.softlayer import *
 from util.spec import *
 from util.config import config
 from util.log import log
+from util.softlayer.service import *
+from util.softlayer.objects.hardware import *
 
 def _get_hardware(hardware_spec, mask=None):
     """Generator returning all hardware matching hardware_spec"""
@@ -24,30 +25,54 @@ def _get_hardware(hardware_spec, mask=None):
         log.debug("fetching hardware server %d" % (hardware['id']))
         hardware_service = get_hardware_server_service(hardware['id'])
         hardware_service.set_object_mask(mask)
-        yield SoftLayerHardwareServer(hardware_service.getObject())
+        hardware = hardware_service.getObject()
+        pp(hardware)
+        yield SoftLayerHardwareServer(hardware)
 
 def _get_hardware_object_mask(properties):
+    """Return an object mask for the given list of propeties"""
     default_mask = {'datacenter': {}, 'hardwareStatus': {}} 
     object_mask = default_mask
     for prop in properties:
-        if prop in ['processors', 'proc', 'cpu']:
+        log.debug("getting hardware object mask for %s" % (prop))
+        if prop in ['processor', 'proc', 'cpu', 'cpus']:
             object_mask['processors'] = {}
         elif prop in ['drives', 'disks', 'disk']:
             object_mask['hardDrives'] = {}
         elif prop in ['memory', 'mem']:
             object_mask['memory'] = {}
+        elif prop in ['raid']:
+            object_mask['raidControllers'] = {}
+        elif prop in ['nic', 'nics']:
+            object_mask['networkComponents'] = {'primarySubnet': {'networkVlan': {}}}
+        elif prop in ['pwr', 'powersupply']:
+            object_mask['powerSupply'] = {}
+        elif prop in ['mobo', 'motherboard']:
+            object_mask['motherboard'] = {}
         else:
             print_error("Unknown hardware property: %s" % (prop))
+    log.debug("hardware object mask: %s" % (object_mask))
     return object_mask
 
 def show(args):
     """usage: slapi hardware show [options] [<hardware_spec>]
 
-    -p PROPS
-    -v, --verbose
-    -F, --format
-    -h, --help
+    options:
+        -p PROPERTIES
+        -v, --verbose
+        -F, --format
+        -h, --help
+
+    properties:
+        cpu     show CPU infomration
+        disk    show DISK information
+        mem     show MEMORY information
+        raid    show RAID CONTROLLER information
+        nic     show NETWORK CARDS information
+        pwr     show POWER SUPPLY information
+        mobo    show MOTHERBOARD information
     """
+
     # Parse Arguments
     hardware_spec = parse_hardware_spec(args)
     properties = args['-p'].split(',') if args['-p'] else []
@@ -57,7 +82,6 @@ def show(args):
 
     # Show Hardware
     for hardware in _get_hardware(hardware_spec, object_mask):
-        #pp(hardware.data)
         print hardware.format()
 
 def transactions(args):

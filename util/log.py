@@ -3,7 +3,7 @@ import logging
 
 log = logging.getLogger('slapi')
 
-def configure_log(log, log_level='DEBUG'):
+def configure_log(log, log_level):
     # Clear existing log handlers
     log.handlers = []
 

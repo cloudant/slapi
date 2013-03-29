@@ -111,15 +111,15 @@ if __name__ == "__main__":
     # Configure Colors
     configure_colors()
 
-    # Configure Log
-    configure_log(log)
-
     # Parse Command Arguments
     global_args = docopt.docopt(__doc__, version=VERSION, options_first=True)
 
+    # Configure Log
+    log_level = 'DEBUG' if global_args['--verbose'] else 'INFO'
+    configure_log(log, log_level)
+
     # Load Configuration
     configfile = global_args['--config'] if global_args['--config'] else DEFAULT_CONFIGFILE
-
     _load_config(configfile)
 
     # Handle Command
