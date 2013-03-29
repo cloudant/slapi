@@ -9,6 +9,29 @@ from pprint import pprint as pp
 COLOR_LABEL = COLORS.Fore.CYAN + COLORS.Style.BRIGHT
 COLOR_RESET = COLORS.Style.RESET_ALL
 
+def confirm(question, default="no"):
+    valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
+
+    if default == None:
+        prompt = " [y/n] "
+    elif default == "yes":
+        prompt = " [Y/n] "
+    elif default == "no":
+        prompt = " [y/N] "
+    else:
+        raise ValueError("invalid default answer: '%s'" % default)
+
+    while True:
+        sys.stdout.write(question + prompt)
+        choice = raw_input().lower()
+        if default is not None and choice == '':
+            return valid[default]
+        elif choice in valid:
+            return valid[choice]
+        else:
+            sys.stdout.write("Please respond with 'yes' or 'no' "\
+                             "(or 'y' or 'n').\n")
+
 def format_object(obj, level=0, color=True):
     output = ""
     if isinstance(obj, dict):
@@ -62,15 +85,32 @@ def merge_dict(a, b):
 def configure_colors():
     COLORS.init()
 
+def colored(message, fg=None, bg=None, style=None):
+    color_fg = getattr(COLORS.Fore, fg.upper()) if fg else COLORS.Fore.RESET
+    color_bg = getattr(COLORS.Back, bg.upper()) if bg else COLORS.Back.RESET
+    color_style = getattr(COLORS.Style, style.upper()) if style else COLORS.Style.NORMAL
+    return color_fg + color_bg + color_style + message + COLORS.Style.RESET_ALL
+
+def warning(message, label="WARNING: "):
+    return colored(label + message, fg='yellow', style='bright')
+
+def error(message, label="ERROR: "):
+    return colored(label + message, fg='red', style='bright')
+
+def critical(message, label=""):
+    return colored(label + message, fg='white', bg='red', style='bright')
+
+def print_warning(message, exit=False):
+    print >> sys.stderr, warning(message)
+    if exit:
+        sys.exit(1)
+
+def print_error(message, exit=True):
+    print >> sys.stderr, error(message)
+    if exit:
+        sys.exit(1)
+
 def print_usage_and_exit(doc):
     print doc
     sys.exit(1)
 
-def print_error(message, exit=False):
-    print COLORS.Fore.RED + COLORS.Style.BRIGHT + "Error: "+ message
-    if exit:
-        sys.exit(1)
-
-if __name__ == "__main__":
-    obj = {'foo': {'bar': 'baz'}, 'what': "derp"}
-    print format_object(obj)
