@@ -19,7 +19,9 @@ def _get_hardware(hardware_spec, mask=None):
     """Generator returning all hardware matching hardware_spec"""
     account_service = get_account_service()
     account_service.set_object_mask(None)
+    log.debug("fetching all hardware with %s" % (hardware_spec))
     for hardware in filter(hardware_spec, account_service.getHardware()):
+        log.debug("fetching hardware server %d" % (hardware['id']))
         hardware_service = get_hardware_server_service(hardware['id'])
         hardware_service.set_object_mask(mask)
         yield SoftLayerHardwareServer(hardware_service.getObject())
@@ -69,8 +71,8 @@ def transactions(args):
 
     object_mask = {'activeTransactions': {},
                     'lastTransaction': {
-                        'transactionStatus': {}, 
-                        'transactionGroup': {}}}q
+                        'transactionStatus': {},
+                        'transactionGroup': {}}}
 
     # Parse Arguments
     hardware_spec = parse_hardware_spec(args)
