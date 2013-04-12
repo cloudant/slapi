@@ -103,7 +103,7 @@ def osreload(args):
     """usage: slapi hardware osreload [options] [<hardware_spec>]
 
     options:
-        -f, --force
+        -c, --confirm TOKEN
     """
     # Parse Arguments
     hardware_spec = parse_hardware_spec(args)
@@ -125,10 +125,25 @@ def osreload(args):
     # Get hardware service
     service = _get_hardware_service(server['id'])
 
-    # Confirm OS reload
-    # TODO: support force?
-    print critical("You are about to issue an OS reload on %s." % server['hostname'], label="WARNING: ")
-    print critical("This will destroy all data on the device.", label="WARNING: ")
-    if confirm(colored("Are you sure you want to continue?", fg='red', style='bright')):
-        print "just kidding. haha. not reloading"
-        #service.reloadCurrentOperatingSystemConfiguration(token='FORCE')
+    confirmation_token = args['--confirm']
+
+    # Check for confirmation_token option 
+    if confirmation_token is None:
+
+        # Prompt for confirmation
+        print critical("You are about to issue an OS reload on %s." % server.fqdn, label="WARNING: ")
+        print critical("This will destroy all data on the device.", label="WARNING: ")
+        if confirm(colored("Are you sure you want to continue?", fg='red', style='bright')):
+            token = service.reloadCurrentOperatingSystemConfiguration()
+            print "OS reload issued, confirm with token: %s" % (token)
+            return
+
+    else:
+        # Prompt for confirmation
+        print critical("You are about to confirm an OS reload on %s." % server.fqdn, label="WARNING: ")
+        print critical("This will destroy all data on the device.", label="WARNING: ")
+        print critical("This is your last chance to abort.", label="WARNING: ")
+        if confirm(colored("Are you sure you want to continue?", fg='red', style='bright')):
+            service.reloadCurrentOperatingSystemConfiguration(token=confirmation_token)
+            print "OS Reload Started on %s" % (server.fqdn)
+            return
