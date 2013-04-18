@@ -9,19 +9,21 @@ commands:
     billing orders          Show orders
     billing placeorder      Place an order
 """
-from util.helpers import *
-from util.spec import *
+from util.spec import parse_quote_spec, parse_order_spec
 from util.config import config
 from util.log import log
 from util.softlayer.service import get_objects, get_service
-from util.softlayer.objects.billing import *
+from util.softlayer.objects.billing import SoftLayerBillingOrderQuote
+from util.softlayer.objects.billing import SoftLayerBillingOrder
+from util.softlayer.objects.billing import SoftLayerContainerProductOrder
 
 def _get_quotes(quote_spec, mask):
     """Generator returning all quotes matching quote_spec"""
     for obj in get_objects('SoftLayer_Billing_Order_Quote', 'getQuotes', quote_spec, mask):
         yield SoftLayerBillingOrderQuote(obj)
 
-def _get_quote_product_order_container(quote_id, mask):
+def _get_quote_product_order_container(quote_id, mask): # pylint: disable-msg=C0103
+    """Generator returning all product order containers for the given quote id"""
     quote_service = get_service('SoftLayer_Billing_Order_Quote', quote_id)
     quote_service.set_object_mask(mask)
     quote_container = quote_service.getRecalculatedOrderContainer()
@@ -39,8 +41,8 @@ def quotes(args):
     options:
 
     """
-    # TODO: Parse quote_spec
-    quote_spec = identity_spec
+    # Parse quote_spec
+    quote_spec = parse_quote_spec(args)
     object_mask = None
 
     for quote in _get_quotes(quote_spec, object_mask):
@@ -55,7 +57,7 @@ def orders(args):
 
     """
     # TODO: Parse order_spec
-    order_spec = identity_spec
+    order_spec = parse_order_spec(args )
     object_mask = None
 
     for order in _get_orders(order_spec, object_mask):

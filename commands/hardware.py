@@ -9,24 +9,29 @@ commands:
     hardware transactions       List pending hardware transactions
     hardware osreload           Reload operating system
 """
-from util.helpers import *
-from util.spec import *
+import sys
+
+from util.helpers import error, warning, critical, colored, confirm
+from util.spec import parse_hardware_spec
 from util.config import config
 from util.log import log
-from util.softlayer.service import *
-from util.softlayer.objects.hardware import *
+from util.softlayer.service import get_service, get_objects
+from util.softlayer.objects.hardware import SoftLayerHardwareServer
+
 
 def _get_hardware_service(object_id=None):
     return get_service('SoftLayer_Hardware_Server', object_id)
+
 
 def _get_hardware(hardware_spec, mask):
     """Generator returning all hardware matching hardware_spec"""
     for obj in get_objects('SoftLayer_Hardware_Server', 'getHardware', hardware_spec, mask):
         yield SoftLayerHardwareServer(obj)
 
+
 def _get_hardware_object_mask(properties):
     """Return an object mask for the given list of propeties"""
-    default_mask = {'datacenter': {}, 'hardwareStatus': {}} 
+    default_mask = {'datacenter': {}, 'hardwareStatus': {}}
     object_mask = default_mask
     for prop in properties:
         log.debug("getting hardware object mask for %s" % (prop))
@@ -45,9 +50,11 @@ def _get_hardware_object_mask(properties):
         elif prop in ['mobo', 'motherboard']:
             object_mask['motherboard'] = {}
         else:
-            print_error("Unknown hardware property: %s" % (prop))
+            print error("Unknown hardware property: %s" % (prop))
+            sys.exit(1)
     log.debug("hardware object mask: %s" % (object_mask))
     return object_mask
+
 
 def show(args):
     """usage: slapi hardware show [options] [<hardware_spec>]
@@ -73,11 +80,12 @@ def show(args):
     properties = args['-p'].split(',') if args['-p'] else []
 
     # Generate Hardware Object Mask
-    object_mask = _get_hardware_object_mask(properties) 
+    object_mask = _get_hardware_object_mask(properties)
 
     # Show Hardware
     for hardware in _get_hardware(hardware_spec, object_mask):
         print hardware.format()
+
 
 def transactions(args):
     """usage: slapi hardware transactions [options] [<hardware_spec>]
@@ -127,9 +135,8 @@ def osreload(args):
 
     confirmation_token = args['--confirm']
 
-    # Check for confirmation_token option 
+    # Check for confirmation_token option
     if confirmation_token is None:
-
         # Prompt for confirmation
         print critical("You are about to issue an OS reload on %s." % server.fqdn, label="WARNING: ")
         print critical("This will destroy all data on the device.", label="WARNING: ")

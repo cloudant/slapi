@@ -99,18 +99,3 @@ def error(message, label="ERROR: "):
 
 def critical(message, label=""):
     return colored(label + message, fg='white', bg='red', style='bright')
-
-def print_warning(message, exit=False):
-    print >> sys.stderr, warning(message)
-    if exit:
-        sys.exit(1)
-
-def print_error(message, exit=True):
-    print >> sys.stderr, error(message)
-    if exit:
-        sys.exit(1)
-
-def print_usage_and_exit(doc):
-    print doc
-    sys.exit(1)
-

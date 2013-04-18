@@ -1,8 +1,8 @@
-import string
+import string # pylint: disable-msg=W0402
 
 from util.helpers import format_object
 
-class softlayer_property(object):
+class softlayer_property(object): # pylint: disable-msg=C0103
     def __init__(self, method):
         self.method = method
         self.__name__ = method.__name__
@@ -15,12 +15,12 @@ class softlayer_property(object):
     def __set__(self, obj, value):
         raise AttributeError("This property is read-only")
 
-    def __delete__(self,inst):
+    def __delete__(self, inst):
         raise AttributeError("This property is read-only")
 
-def softlayer_property_format(property_name=None, property_display=True):
+def softlayer_property_format(property_name=None, property_display=True): 
     """factory function for softlayer_property__format_decorator"""
-    def softlayer_property_format_decorator(func):
+    def softlayer_property_format_decorator(func): # pylint: disable-msg=C0103
         @softlayer_property
         def wrapped_f(*args):
             return func(*args)
@@ -32,7 +32,7 @@ def softlayer_property_format(property_name=None, property_display=True):
 
 def softlayer_object_property(object_type, property_name=None, property_display=True):
     """factory function for softlayer_object_property_decorator"""
-    def softlayer_object_property_decorator(func):
+    def softlayer_object_property_decorator(func): # pylint: disable-msg=C0103
         @softlayer_property
         def wrapped_f(*args):
             data = func(*args)
@@ -58,15 +58,14 @@ class BaseSoftLayerObject(object):
     def __init__(self, obj):
         self._data = obj
 
-    def __getitem__(self, k):
-        if k in self.data:
-            return self.data[k]
+    def get_data(self, key, default=None, raise_error=False):
+        if key in self._data:
+            return self._data[key]
         else:
-            return None
-
-    @property
-    def data(self):
-        return self._data
+            if raise_error:
+                raise KeyError("No such key: %s" % (key))
+            else:
+                return default
 
     def format(self, mask=None, only_locals=False, color=True):
         obj = self._format(mask, only_locals)
@@ -108,15 +107,15 @@ class SoftLayerLocation(BaseSoftLayerObject):
 
     @softlayer_property_format(property_display=False)
     def id(self):
-        return self.data['id']
+        return self.get_data('id')
 
     @softlayer_property_format("Short Name")
     def name(self):
-        return self.data['name']
+        return self.get_data('name')
 
     @softlayer_property_format("Name")
     def pretty_name(self):
-        return self.data['longName']
+        return self.get_data('longName')
 
 class SoftLayerTransactionGroup(BaseSoftLayerObject):
     """SoftLayer_Provisioning_Version1_Transaction_Group"""
@@ -126,11 +125,11 @@ class SoftLayerTransactionGroup(BaseSoftLayerObject):
 
     @softlayer_property
     def name(self):
-        return self.data['name']
+        return self.get_data('name')
 
     @softlayer_property
     def average_time(self):
-        return self.data['averageTimeToComplete']
+        return self.get_data('averageTimeToComplete')
 
 class SoftLayerTransactionStatus(BaseSoftLayerObject):
     """SoftLayer_Provisioning_Version1_Transaction_Status"""
@@ -140,7 +139,10 @@ class SoftLayerTransactionStatus(BaseSoftLayerObject):
 
     @softlayer_property
     def name(self):
-        return self.data['friendlyName'] if 'friendlyName' in self.data else self.data['name']
+        if 'friendlyName' in self._data:
+            return self.get_data('friendlyName')
+        else:
+            return self.get_data('name')
 
 class SoftLayerTransaction(BaseSoftLayerObject):
     """SoftLayer_Provisioning_Version1_Transaction"""
@@ -150,16 +152,16 @@ class SoftLayerTransaction(BaseSoftLayerObject):
 
     @softlayer_property
     def create_date(self):
-        return self.data['createDate']
+        return self.get_data('createDate')
 
     @softlayer_property
     def modify_date(self):
-        return self.data['modifyDate']
+        return self.get_data('modifyDate')
 
     @softlayer_object_property(SoftLayerTransactionStatus)
     def status(self):
-        return self['transactionStatus']
+        return self.get_data('transactionStatus')
 
     @softlayer_object_property(SoftLayerTransactionGroup)
     def group(self):
-        return self['transactionGroup']
+        return self.get_data('transactionGroup')
