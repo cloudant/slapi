@@ -6,6 +6,9 @@ PATTERN_IPADDR = re.compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
 def identity_spec(o):
     return True
 
+def parse_quote_spec(args):
+    pass
+
 def parse_hardware_spec(args):
     """
     hardware_spec := object_id | ip_address | fqdn

@@ -46,7 +46,8 @@ def _get_installed_commands():
             yield os.path.splitext(f)[0]
 
 def _get_builtin_commands():
-    yield None
+    for c in ['help']:
+        yield c
 
 def _load_command_module(name):
     """Import given command module"""
@@ -128,9 +129,8 @@ if __name__ == "__main__":
     # Handle Command
     command = global_args['<command>']
     if command in list(_get_builtin_commands()):
-        # TODO: Built in commands
-        pass
-    if command in list(_get_installed_commands()):
+        print "whatup" 
+    elif command in list(_get_installed_commands()):
         # Load command module
         command_module = _load_command_module(command)
         _handle_command(command_module, global_args)

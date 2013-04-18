@@ -43,3 +43,29 @@ class SoftLayerBillingOrderQuote(BaseSoftLayerObject):
     @softlayer_property
     def create_date(self):
         return self.data['createDate']
+
+class SoftLayerContainerProductOrder(BaseSoftLayerObject):
+    """SoftLayer_Container_Product_Order"""
+
+    def __init__(self, obj):
+        super(SoftLayerContainerProductOrder, self).__init__(obj)
+
+    @softlayer_property_format("Recurring Cost")
+    def post_tax_recurring_charge(self):
+        return self.data['postTaxRecurring']
+
+    @softlayer_property_format(property_display=False)
+    def pre_tax_recurring_charge(self):
+        return self.data['preTaxRecurring']
+
+    @softlayer_property_format("Setup Cost")
+    def post_tax_setup_charge(self):
+        return self.data['postTaxSetup']
+
+    @softlayer_property_format(property_display=False)
+    def pre_tax_setup_charge(self):
+        return self.data['preTaxSetup']
+
+    @softlayer_property_format("Prorated Order Charge")
+    def prorated_order_charge(self):
+        return self.data['proratedOrderTotal']
