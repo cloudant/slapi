@@ -18,7 +18,6 @@ from util.log import log
 from util.softlayer.service import get_service, get_objects
 from util.softlayer.objects.hardware import SoftLayerHardwareServer
 
-
 def _get_hardware_service(object_id=None):
     return get_service('SoftLayer_Hardware_Server', object_id)
 
@@ -44,7 +43,7 @@ def _get_hardware_object_mask(properties):
         elif prop in ['raid']:
             object_mask['raidControllers'] = {}
         elif prop in ['nic', 'nics']:
-            object_mask['networkComponents'] = {'primarySubnet': {'networkVlan': {}}}
+            object_mask['networkComponents'] = {'primarySubnet': {'networkVlan': {'primaryRouter': {}, 'secondaryRouter': {}}}}
         elif prop in ['pwr', 'powersupply']:
             object_mask['powerSupply'] = {}
         elif prop in ['mobo', 'motherboard']:
@@ -60,9 +59,8 @@ def show(args):
     """usage: slapi hardware show [options] [<hardware_spec>]
 
     options:
-        -p PROPERTIES
-        -v, --verbose
-        -F, --format
+        -p, --properties PROPERTIES
+        -F, --format FORMAT
         -h, --help
 
     properties:
@@ -77,14 +75,14 @@ def show(args):
 
     # Parse Arguments
     hardware_spec = parse_hardware_spec(args)
-    properties = args['-p'].split(',') if args['-p'] else []
+    properties = args['--properties'].split(',') if args['--properties'] else []
 
     # Generate Hardware Object Mask
     object_mask = _get_hardware_object_mask(properties)
 
     # Show Hardware
     for hardware in _get_hardware(hardware_spec, object_mask):
-        print hardware.format()
+        print hardware.format(args['--format'])
 
 
 def transactions(args):

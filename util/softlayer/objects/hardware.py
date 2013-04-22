@@ -1,4 +1,6 @@
 from util.softlayer.objects.core import *
+from util.softlayer.objects.network import SoftLayerNetworkVLAN
+from util.softlayer.objects.network import SoftLayerNetworkSubnet
 
 
 class SoftLayerHardwareComponentModel(BaseSoftLayerObject):
@@ -7,7 +9,7 @@ class SoftLayerHardwareComponentModel(BaseSoftLayerObject):
     def __init__(self, obj):
         super(SoftLayerHardwareComponentModel, self).__init__(obj)
 
-    @softlayer_property_format(property_display=False)
+    @softlayer_property_format(label=False)
     def id(self):  # pylint: disable-msg=C0103
         return self.get_data('id')
 
@@ -38,49 +40,13 @@ class SoftLayerHardwareComponent(BaseSoftLayerObject):
     def __init__(self, obj):
         super(SoftLayerHardwareComponent, self).__init__(obj)
 
-    @softlayer_property_format(property_display=False)
+    @softlayer_property_format(label=False)
     def id(self):  # pylint: disable-msg=C0103
         return self.get_data('id')
 
-    @softlayer_object_property(SoftLayerHardwareComponentModel, property_name="Model")
+    @softlayer_object_property(SoftLayerHardwareComponentModel, label="Model")
     def model(self):
         return self.get_data('hardwareComponentModel')
-
-
-class SoftLayerNetworkVLAN(BaseSoftLayerObject):
-
-    def __init__(self, obj):
-        super(SoftLayerNetworkVLAN, self).__init__(obj)
-
-    @softlayer_property_format(property_display=False)
-    def id(self):  # pylint: disable-msg=C0103
-        return self.get_data('id')
-
-    @softlayer_property_format(property_display="VLAN")
-    def vlan(self):
-        return self.get_data('vlanNumber')
-
-
-class SoftLayerNetworkSubnet(BaseSoftLayerObject):
-
-    def __init__(self, obj):
-        super(SoftLayerNetworkSubnet, self).__init__(obj)
-
-    @softlayer_property_format(property_display=False)
-    def id(self):  # pylint: disable-msg=C0103
-        return self.get_data('id')
-
-    @softlayer_property
-    def netmask(self):
-        return self.get_data('netmask')
-
-    @softlayer_property
-    def gateway(self):
-        return self.get_data('gateway')
-
-    @softlayer_property_format("VLAN")
-    def vlan(self):
-        return self.get_data('networkVlan')
 
 
 class SoftLayerNetworkComponent(BaseSoftLayerObject):
@@ -89,27 +55,34 @@ class SoftLayerNetworkComponent(BaseSoftLayerObject):
     def __init__(self, obj):
         super(SoftLayerNetworkComponent, self).__init__(obj)
 
-    @softlayer_property_format(property_display=False)
+    @softlayer_property_format(label=False)
     def id(self):  # pylint: disable-msg=C0103
         return self.get_data('id')
 
-    @softlayer_property
+    @softlayer_property_format(order=0)
     def name(self):
         return "%s%s" % (self.get_data('name'), str(self.get_data('port')))
 
-    @softlayer_property_format("IP Address")
+    @softlayer_property_format("IP Address", order=1)
     def ip_address(self):
         return self.get_data('primaryIpAddress')
 
-    @softlayer_object_property(SoftLayerNetworkSubnet)
+    @softlayer_object_property(SoftLayerNetworkSubnet, order=3)
     def subnet(self):
         return self.get_data('primarySubnet')
 
-    @softlayer_property
+    @softlayer_object_property(SoftLayerNetworkVLAN, label="VLAN", order=2)
+    def vlan(self):
+        if self.subnet:
+            return self.subnet.get_data('networkVlan')
+        else:
+            return None
+
+    @softlayer_property_format(order=4)
     def speed(self):
         return self.get_data('speed')
 
-    @softlayer_property
+    @softlayer_property_format(order=4)
     def status(self):
         return self.get_data('status').capitalize()
 
@@ -120,70 +93,68 @@ class SoftLayerHardwareServer(BaseSoftLayerObject):
     def __init__(self, obj):
         super(SoftLayerHardwareServer, self).__init__(obj)
 
-    @softlayer_property_format("Id")
+    @softlayer_property_format(order=0)
     def id(self):  # pylint: disable-msg=C0103
         return self.get_data('id')
 
-    @softlayer_property_format("AccountId")
-    def account_id(self):
-        return self.get_data('accountId')
-
-    @softlayer_property
-    def domain(self):
-        return self.get_data('domain')
-
-    @softlayer_property
+    @softlayer_property_format(order=1)
     def hostname(self):
         return self.get_data('hostname')
 
-    @softlayer_property_format("FQDN")
+    @softlayer_property_format(order=2)
+    def domain(self):
+        return self.get_data('domain')
+
+    @softlayer_property_format(label="FQDN", order=3)
     def fqdn(self):
         return self.get_data('fullyQualifiedDomainName')
 
-    @softlayer_property_format("Public IP")
+    @softlayer_property_format(label="Public IP", order=4)
     def public_ip_address(self):
         return self.get_data('primaryIpAddress')
 
-    @softlayer_property_format("Private IP")
+    @softlayer_property_format(label="Private IP", order=5)
     def private_ip_address(self):
         return self.get_data('primaryBackendIpAddress')
 
-    @softlayer_property_format("Management IP")
+    @softlayer_property_format(label="Management IP", order=6)
     def management_ip_address(self):
         return self.get_data('networkManagementIpAddress')
 
-    @softlayer_property
-    def serial_number(self):
-        return self.get_data('serialNumber')
-
-    @softlayer_object_property(SoftLayerLocation)
+    @softlayer_object_property(SoftLayerLocation, order=7)
     def datacenter(self):
         return self.get_data('datacenter')
 
-    @softlayer_object_property(SoftLayerTransaction, property_name="Last Transaction")
+    @softlayer_property_format(order=8)
+    def serial_number(self):
+        return self.get_data('serialNumber')
+
+    @softlayer_object_property(SoftLayerTransaction, label="Last Transaction", order=10)
     def last_transaction(self):
         return self.get_data('lastTransaction')
 
-    @softlayer_object_property(SoftLayerTransaction, property_name="Active Transactions")
+    @softlayer_object_property(SoftLayerTransaction, label="Active Transactions", order=11)
     def active_transactions(self):
         return self.get_data('activeTransactions')
 
-    @softlayer_object_property(SoftLayerHardwareComponent, property_name="Processors")
+    @softlayer_object_property(SoftLayerHardwareComponent, label="Processors", order=12)
     def processors(self):
         return self.get_data('processors')
 
-    @softlayer_object_property(SoftLayerHardwareComponent, property_name="Disks")
+    @softlayer_object_property(SoftLayerHardwareComponent, label="Disks", order=13)
     def disks(self):
         return self.get_data('hardDrives')
 
-    @softlayer_object_property(SoftLayerHardwareComponent, property_name="Memory")
+    @softlayer_object_property(SoftLayerHardwareComponent, label="Memory", order=14)
     def memory(self):
         return self.get_data('memory')
 
-    @softlayer_object_property(SoftLayerHardwareComponent, property_name="Motherboard")
+    @softlayer_object_property(SoftLayerHardwareComponent, label="Motherboard", order=15)
     def motherboard(self):
         return self.get_data('motherboard')
 
-    @softlayer_object_property(SoftLayerNetworkComponent, property_name="NICs")
+    @softlayer_object_property(SoftLayerNetworkComponent, label="NICs", order=16)
     def nics(self):
         return self.get_data('networkComponents')
+
+

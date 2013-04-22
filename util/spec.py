@@ -6,15 +6,43 @@ PATTERN_IP_ADDRESS = re.compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
 def _identity_spec(obj):
     return True
 
+
 def parse_order_spec(args):
     return _identity_spec
+
+
+def parse_subnet_spec(args):
+    return _identity_spec
+
+
+def parse_vlan_spec(args):
+    return _identity_spec
+
+
+def parse_location_spec(spec):
+    if spec is None:
+        return _identity_spec
+
+    # match quote object id
+    match = PATTERN_OBJECT_ID.match(spec)
+    if match:
+        object_id = int(match.group(1))
+        # return function matching object id
+        return lambda o: int(o['id']) == object_id 
+
+    # match quote name
+    datacenter_name = spec
+    return lambda d: re.search(datacenter_name, d['name']) != None
 
 def parse_quote_spec(args):
     """
     quote_spec := object_id | name
     """
+    print args
     if '<quote_spec>' in args:
         spec = args['<quote_spec>']
+        if spec is None:
+            return _identity_spec
 
         # match quote object id
         match = PATTERN_OBJECT_ID.match(spec)
@@ -37,6 +65,8 @@ def parse_hardware_spec(args):
     # Check for hardware spec argument
     if '<hardware_spec>' in args:
         spec = args['<hardware_spec>']
+        if spec is None:
+            return _identity_spec
 
         # match hardware object id 
         match = PATTERN_OBJECT_ID.match(spec)

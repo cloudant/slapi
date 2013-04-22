@@ -58,8 +58,11 @@ def _format_dict_object(obj, level, color):
 
 def _format_list_object(obj, level, color):
     output = ""
-    for item in obj:
-        output += format_object(item, level+1, color=color)
+    if len(obj) > 0:
+        for item in obj:
+            output += format_object(item, level, color=color)
+    else:
+        output += format_object("None", level, color=color) 
     return output
 
 def _format_label(label, ljust, color):

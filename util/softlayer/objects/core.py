@@ -1,5 +1,6 @@
 import string # pylint: disable-msg=W0402
 
+from collections import OrderedDict
 from util.helpers import format_object
 
 class softlayer_property(object): # pylint: disable-msg=C0103
@@ -18,19 +19,19 @@ class softlayer_property(object): # pylint: disable-msg=C0103
     def __delete__(self, inst):
         raise AttributeError("This property is read-only")
 
-def softlayer_property_format(property_name=None, property_display=True): 
+def softlayer_property_format(label=None, order=1000):
     """factory function for softlayer_property__format_decorator"""
     def softlayer_property_format_decorator(func): # pylint: disable-msg=C0103
         @softlayer_property
         def wrapped_f(*args):
             return func(*args)
-        # set property_format
-        wrapped_f.property_name = property_name
-        wrapped_f.property_display = property_display
+        # set property formatting attributes
+        wrapped_f.property_label = label
+        wrapped_f.property_order = order
         return wrapped_f
     return softlayer_property_format_decorator
 
-def softlayer_object_property(object_type, property_name=None, property_display=True):
+def softlayer_object_property(object_type, label=None, order=1000):
     """factory function for softlayer_object_property_decorator"""
     def softlayer_object_property_decorator(func): # pylint: disable-msg=C0103
         @softlayer_property
@@ -47,8 +48,8 @@ def softlayer_object_property(object_type, property_name=None, property_display=
                 else:
                     obj = data
                     return object_type(obj)
-        wrapped_f.property_name = property_name
-        wrapped_f.property_display = property_display
+        wrapped_f.property_label = label
+        wrapped_f.property_order = order
         return wrapped_f
     return softlayer_object_property_decorator
 
@@ -67,37 +68,88 @@ class BaseSoftLayerObject(object):
             else:
                 return default
 
-    def format(self, mask=None, only_locals=False, color=True):
-        obj = self._format(mask, only_locals)
+    def format(self, color=True):
+        obj = self._format()
         return format_object(obj, color=color)
 
-    def _format(self, mask, only_locals):
-        obj = {}
-        #TODO: sort local first?
+    def _gather_properties_to_format(self):
+        """Generator returning tuples of (key, attr) of properties to format"""
+        # built a list of tuples of (key, property_order)
+        keys = list()
         for key, method in self.__class__.__dict__.iteritems():
+            # Get property ordering info, default=1000
+            property_order = getattr(method, 'property_order', 1000)
+            keys.append((key, property_order))
+
+        # build ordered dict from keys sorted by property_order 
+        for key, _order in sorted(keys, key=lambda i: i[1]):
+            yield (key, self.__class__.__dict__[key])
+
+    def _format(self):
+        obj = OrderedDict()
+        #TODO: sort local first?
+        for key, method in self._gather_properties_to_format():
             if isinstance(method, softlayer_property):
-                property_display = getattr(method, 'property_display', True)
-                if not property_display:
+
+                # Get property label 
+                property_label = getattr(method, 'property_label', key)
+
+                if property_label == False:
+                    # If label is false, dont format
                     continue
+                elif property_label == None or property_label == key:
+                    # If label is None, assume format is just the keyname
+                    property_label = string.capwords(' '.join(key.split('_')))
 
-                property_name = getattr(method, 'property_name', key)
-                if property_name is None or property_name == key:
-                    property_name = string.capwords(' '.join(key.split('_')))
-
+                # Get property value
                 property_value = method.__get__(self, key)
                 if isinstance(property_value, list):
                     # format each item in the list
-                    obj[property_name] = list()
+                    obj[property_label] = list()
                     for property_value_item in property_value:
-                        obj[property_name].append(property_value_item._format(mask, only_locals))
+                        obj[property_label].append(property_value_item._format())
 
                 elif isinstance(property_value, BaseSoftLayerObject):
                     if property_value is not None:
-                        obj[property_name] = property_value._format(mask, only_locals)
+                        obj[property_label] = property_value._format()
                 else:
                     if property_value is not None:
-                        obj[property_name] = property_value
+                        obj[property_label] = property_value
         return obj
+
+class SoftLayerAccountAddress(BaseSoftLayerObject):
+    """SoftLayer_Account_Address"""
+
+    def __init__(self, obj):
+        super(SoftLayerAccountAddress, self).__init__(obj)
+
+    @softlayer_property_format(label=False)
+    def id(self):
+        return self.get_data('id')
+
+    @softlayer_property_format(label="Address Line 1", order=0)
+    def address1(self):
+        return self.get_data('address1')
+
+    @softlayer_property_format(label="Address Line 2", order=1)
+    def address2(self):
+        return self.get_data('address2')
+
+    @softlayer_property_format(order=2)
+    def city(self):
+        return self.get_data('city')
+
+    @softlayer_property_format(order=4)
+    def state(self):
+        return self.get_data('state')
+
+    @softlayer_property_format(order=5)
+    def zip(self):
+        return self.get_data('postalCode')
+
+    @softlayer_property_format(order=6)
+    def country(self):
+        return self.get_data('country')
 
 class SoftLayerLocation(BaseSoftLayerObject):
     """SoftLayer_Location"""
@@ -105,17 +157,21 @@ class SoftLayerLocation(BaseSoftLayerObject):
     def __init__(self, obj):
         super(SoftLayerLocation, self).__init__(obj)
 
-    @softlayer_property_format(property_display=False)
+    @softlayer_property_format(label=False)
     def id(self):
         return self.get_data('id')
 
-    @softlayer_property_format("Short Name")
+    @softlayer_property_format(label="Short Name", order=1)
     def name(self):
         return self.get_data('name')
 
-    @softlayer_property_format("Name")
+    @softlayer_property_format(label="Name", order=0)
     def pretty_name(self):
         return self.get_data('longName')
+
+    @softlayer_object_property(SoftLayerAccountAddress, order=3)
+    def address(self):
+        return self.get_data('locationAddress')
 
 class SoftLayerTransactionGroup(BaseSoftLayerObject):
     """SoftLayer_Provisioning_Version1_Transaction_Group"""
