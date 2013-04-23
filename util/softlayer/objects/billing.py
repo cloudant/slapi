@@ -6,7 +6,7 @@ class SoftLayerBillingOrder(BaseSoftLayerObject):
     def __init__(self, obj):
         super(SoftLayerBillingOrder, self).__init__(obj)
 
-    @softlayer_property_format(property_display=False)
+    @softlayer_property_format(label=False)
     def id(self):
         return self.get_data('id')
 
@@ -24,7 +24,7 @@ class SoftLayerBillingOrderQuote(BaseSoftLayerObject):
     def __init__(self, obj):
         super(SoftLayerBillingOrderQuote, self).__init__(obj)
 
-    @softlayer_property_format(property_display=False)
+    @softlayer_property_format(label=False)
     def id(self):
         return self.get_data('id')
 
@@ -54,7 +54,7 @@ class SoftLayerContainerProductOrder(BaseSoftLayerObject):
     def post_tax_recurring_charge(self):
         return self.get_data('postTaxRecurring')
 
-    @softlayer_property_format(property_display=False)
+    @softlayer_property_format(label=False)
     def pre_tax_recurring_charge(self):
         return self.get_data('preTaxRecurring')
 
@@ -62,7 +62,7 @@ class SoftLayerContainerProductOrder(BaseSoftLayerObject):
     def post_tax_setup_charge(self):
         return self.get_data('postTaxSetup')
 
-    @softlayer_property_format(property_display=False)
+    @softlayer_property_format(label=False)
     def pre_tax_setup_charge(self):
         return self.get_data('preTaxSetup')
 

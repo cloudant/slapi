@@ -18,6 +18,10 @@ class SoftLayerHardwareRouter(BaseSoftLayerObject):
     def hostname(self):
         return self.get_data('hostname')
 
+    @softlayer_object_property(SoftLayerLocation, order=2)
+    def datacenter(self):
+        return self.get_data('datacenter')
+
 class SoftLayerNetworkSubnet(BaseSoftLayerObject):
 
     def __init__(self, obj):
@@ -27,15 +31,19 @@ class SoftLayerNetworkSubnet(BaseSoftLayerObject):
     def id(self):  # pylint: disable-msg=C0103
         return self.get_data('id')
 
-    @softlayer_property_format(order=2)
+    @softlayer_property_format(order=0)
+    def name(self):
+        return "%s/%d" % (self.get_data('networkIdentifier'), self.get_data('cidr'))
+
+    @softlayer_property_format(order=3)
     def netmask(self):
         return self.get_data('netmask')
 
-    @softlayer_property_format(order=1)
+    @softlayer_property_format(order=2)
     def gateway(self):
         return self.get_data('gateway')
 
-    @softlayer_property_format(order=0)
+    @softlayer_property_format(order=1)
     def subnet_type(self):
         return self.get_data('subnetType')
 
