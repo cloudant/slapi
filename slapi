@@ -7,8 +7,10 @@ options:
     -h, --help
 
 The most commonly used slapi commands are:
-    hardware        List, provision, or query hardware
     commands        List available commands
+    hardware        Hardware related commands (show, osreload, etc.)
+    billing         Billing related commands (quotes, orders, etc.)
+    network         Network related commands (vlans, subnets)
 """
 import os
 import sys
@@ -16,31 +18,36 @@ import inspect
 import traceback
 import docopt
 
+from collections import OrderedDict
+
 from util.config import config, _load_config
 from util.log import log, configure_log
 from util.helpers import configure_colors, error, warning
 
+
 #==============================================================================
 # Constants
 #==============================================================================
+
 VERSION = '0.1.0'
 MODULE_DIR = 'commands'
+BUILTINS = {'commands': 'list_commands'}
 
 DEFAULT_LOG_FILE = None
 DEFAULT_LOG_LEVEL = 'INFO'
 DEFAULT_CONFIGFILE = "%s/.slapi.conf" % (os.path.expanduser("~"))
 
+
 #==============================================================================
 # Helpers
 #==============================================================================
-
 
 def _get_root_directory():
     """Return slapi root directory"""
     return os.path.dirname(os.path.realpath(__file__))
 
 
-def _get_installed_commands():
+def _get_installed_modules():
     """Generator returning all commands in MODULE_DIR"""
     for f in os.listdir(os.path.join(_get_root_directory(), MODULE_DIR)):
         if (not f.startswith('.') and
@@ -50,8 +57,8 @@ def _get_installed_commands():
 
 
 def _get_builtin_commands():
-    for c in ['help']:
-        yield c
+    for command,func in BUILTINS.iteritems():
+        yield command
 
 
 def _load_command_module(name):
@@ -111,7 +118,7 @@ def _handle_command(module, global_args):
             _handle_subcommand(module, func, subcommand_args)
         else:
             # If no main function is defined, just print the docstring
-            print warning(module.__doc__)
+            print module.__doc__
             sys.exit(1)
 
 
@@ -121,6 +128,40 @@ def _handle_subcommand(module, func, subcommand_args):
     # Invoke subcommand
     func(subcommand_args)
 
+def list_commands(args):
+    """List available commands.
+
+    Usage: slapi commands [<command>]
+
+    """
+
+    command_list = OrderedDict()
+
+    # Get installed modules
+    for command in _get_installed_modules():
+
+        # Load command module
+        module = _load_command_module(command)
+
+        # Get command module subcommands
+        for subcommand, subcommand_func in inspect.getmembers(module):
+            if subcommand.startswith('_'):
+                continue
+            if inspect.isfunction(subcommand_func) == False:
+                continue
+            if subcommand_func.__module__ != module.__name__:
+                continue
+            if subcommand == "main":
+                continue
+
+            command_name = "%s %s" % (command, subcommand)
+            command_list[command_name] = subcommand_func.__doc__
+
+    # Calculate ljust
+    ljust = max(map(lambda k: len(k) if k else 0, command_list.keys())) + 4
+
+    for command_name, command_doc in command_list.iteritems():
+        print command_name.ljust(ljust), command_doc.split('\n')[0]
 
 def main():
     # Configure Colors
@@ -149,8 +190,18 @@ def main():
     # Handle Command
     command = global_args['<command>']
     if command in list(_get_builtin_commands()):
-        print "whatup"
-    elif command in list(_get_installed_commands()):
+        command_module = sys.modules[__name__]
+        # Get command function from module
+        command_func = getattr(command_module, BUILTINS[command])
+
+        # Parse subcommand arguments from module.func's docstring
+        command_argv = [command] + global_args['<args>'][1:]
+        command_args = docopt.docopt(command_func.__doc__, argv=command_argv)
+
+        # Handle subcommand
+        _handle_subcommand(command_module, command_func, command_args)
+
+    elif command in list(_get_installed_modules()):
         # Load command module
         command_module = _load_command_module(command)
         _handle_command(command_module, global_args)

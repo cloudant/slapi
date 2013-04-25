@@ -1,10 +1,7 @@
-"""usage: slapi [options] hardware <command> [<args>...]
+"""
+Usage: slapi hardware <command> [<args>...]
 
-options:
-    -v, --verbose
-    -h, --help
-
-commands:
+Commands:
     hardware show               Show hardware information
     hardware transactions       List pending hardware transactions
     hardware osreload           Reload operating system
@@ -17,6 +14,7 @@ from util.config import config
 from util.log import log
 from util.softlayer.service import get_service, get_objects
 from util.softlayer.objects.hardware import SoftLayerHardwareServer
+
 
 def _get_hardware_service(object_id=None):
     return get_service('SoftLayer_Hardware_Server', object_id)
@@ -56,14 +54,16 @@ def _get_hardware_object_mask(properties):
 
 
 def show(args):
-    """usage: slapi hardware show [options] [<hardware_spec>]
+    """Show hardware
 
-    options:
+    Usage: slapi hardware show [options] [<hardware_spec>]
+
+    Options:
         -p, --properties PROPERTIES
         -F, --format FORMAT
         -h, --help
 
-    properties:
+    Properties:
         cpu     show CPU infomration
         disk    show DISK information
         mem     show MEMORY information
@@ -86,10 +86,13 @@ def show(args):
 
 
 def transactions(args):
-    """usage: slapi hardware transactions [options] [<hardware_spec>]
+    """Show hardware transactions
 
-    options:
-        -a, --active
+    Usage: slapi hardware transactions [options] [<hardware_spec>]
+
+    Options:
+        -F, --format FORMAT
+        -h, --help
     """
     # Parse Arguments
     hardware_spec = parse_hardware_spec(args)
@@ -106,10 +109,13 @@ def transactions(args):
 
 
 def osreload(args):
-    """usage: slapi hardware osreload [options] [<hardware_spec>]
+    """Perform OS reload
 
-    options:
+    Usage: slapi hardware osreload [options] [<hardware_spec>]
+
+    Options:
         -c, --confirm TOKEN
+        -h, --help
     """
     # Parse Arguments
     hardware_spec = parse_hardware_spec(args)

@@ -1,15 +1,10 @@
-"""usage: slapi [options] network <command> [<args>...]
+"""
+Usage: slapi network <command> [<args>...]
 
-options:
-    -v, --verbose
-    -h, --help
-
-commands:
+Commands:
     network subnets         Show network subnets
     network vlans           Show network subnets
 """
-
-
 from pprint import pprint as pp
 
 from util.spec import parse_subnet_spec
@@ -22,14 +17,14 @@ from util.softlayer.service import build_vlan_object_mask
 from util.softlayer.service import build_subnet_object_mask
 
 
-
 def subnets(args):
-    """usage: slapi network subnets [options] [<vlan_spec>]
+    """Show subnets
 
-    options:
+    Usage: slapi network subnets [options] [<vlan_spec>]
+
+    Options:
         -F, --format FORMAT
         -h, --help
-
     """
     # Parse network_spec
     subnet_spec = parse_subnet_spec(args)
@@ -40,21 +35,22 @@ def subnets(args):
 
 
 def vlans(args):
-    """usage: slapi network vlans [options] [<vlan_spec>]
+    """Show VLANs
 
-    options:
+    Usage: slapi network vlans [options] [<vlan_spec>]
+
+    Options:
         -p, --public                Filter for ublic VLANs
         -x, --private               Filter for private VLANs
         -l, --location LOCATION     Filter VLANs in LOCATION (e.g. dal05)
         -s, --subnets               Show subnets attached to VLANS
         -F, --format FORMAT
         -h, --help
-
     """
     # Parse vlan spec 
     vlan_spec = parse_vlan_spec(args['<vlan_spec>'])
     object_mask = build_vlan_object_mask(
-            include_subnets=(args['--subnets'] == True))
+        include_subnets=(args['--subnets'] is True))
 
     # Parse args
     if args['--public']:

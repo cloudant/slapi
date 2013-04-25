@@ -1,10 +1,7 @@
-"""usage: slapi [options] billing <command> [<args>...]
+"""
+Usage: slapi billing <command> [<args>...]
 
-options:
-    -v, --verbose
-    -h, --help
-
-commands:
+Commands:
     billing quotes          Show quotes
     billing orders          Show orders
     billing orderquote      Place an order
@@ -68,10 +65,13 @@ def _find_vlan(vlan_type, vlan_spec):
 
 
 def quotes(args):
-    """usage: slapi billing quotes [options] [<quote_spec>]
+    """Show quotes
 
-    options:
+    Usage: slapi billing quotes [options] [<quote_spec>]
 
+    Options:
+        -F, --format FORMAT
+        -h, --help
     """
     # Parse quote_spec
     quote_spec = parse_quote_spec(args['<quote_spec>'])
@@ -83,9 +83,11 @@ def quotes(args):
 
 
 def orderquote(args):
-    """usage: slapi billing orderquote [options] <quote_spec> <hostname> <domain>
+    """Place an order from an existing quote
 
-    options:
+    Usage: slapi billing orderquote [options] <quote_spec> <hostname> <domain>
+
+    Options:
         --network-public-vlan VLAN_SPEC
         --network-private-vlan VLAN_SPEC
         -h, --help
@@ -165,9 +167,13 @@ def orderquote(args):
 
 
 def orders(args):
-    """usage: slapi billing orders [options] [<order_spec>]
+    """Show orders
 
-    options:
+    Usage: slapi billing orders [options] [<order_spec>]
+
+    Options:
+        -F, --format FORMAT
+        -h, --help
 
     """
     order_spec = parse_order_spec(args )

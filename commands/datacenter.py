@@ -1,11 +1,8 @@
-"""usage: slapi [options] datacenter <command> [<args>...]
+"""
+Usage: slapi datacenter <command> [<args>...]
 
-options:
-    -v, --verbose
-    -h, --help
-
-commands:
-    datacenter show         Show datacenters 
+Commands:
+    datacenter show         Show datacenters
 """
 from util.spec import parse_location_spec
 from util.config import config
@@ -31,9 +28,11 @@ def _get_datacenter_object_mask():
 
 
 def show(args):
-    """usage: slapi datacenter show [options] [<location_spec>]
+    """Show datacenter
 
-    options:
+    Usage: slapi datacenter show [options] [<location_spec>]
+
+    Options:
         -F, --format FORMAT
         -h, --help
     """
