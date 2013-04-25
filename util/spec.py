@@ -45,29 +45,24 @@ def parse_location_spec(spec):
     datacenter_name = spec
     return lambda d: re.search(datacenter_name, d['name']) != None
 
-def parse_quote_spec(args):
+
+def parse_quote_spec(spec):
     """
     quote_spec := object_id | name
     """
-    print args
-    if '<quote_spec>' in args:
-        spec = args['<quote_spec>']
-        if spec is None:
-            return _identity_spec
-
-        # match quote object id
-        match = PATTERN_OBJECT_ID.match(spec)
-        if match:
-            quote_id = int(match.group(1))
-            # return function matching quote object id
-            return lambda q: int(q['id']) == quote_id
-
-        # match quote name
-        quote_name = spec
-        return lambda q: re.search(quote_name, q['name']) != None
-    else:
-        # return identity spec (matches all objects)
+    if spec is None:
         return _identity_spec
+
+    # match quote object id
+    match = PATTERN_OBJECT_ID.match(spec)
+    if match:
+        quote_id = int(match.group(1))
+        # return function matching quote object id
+        return lambda q: int(q['id']) == quote_id
+
+    # match quote name
+    quote_name = spec
+    return lambda q: re.search(quote_name, q['name']) != None
 
 def parse_hardware_spec(args):
     """

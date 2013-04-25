@@ -6,7 +6,7 @@ class SoftLayerHardwareRouter(BaseSoftLayerObject):
     def __init__(self, obj):
         super(SoftLayerHardwareRouter, self).__init__(obj)
 
-    @softlayer_property_format(order=0)
+    @softlayer_property_format(label=False)
     def id(self):  # pylint: disable-msg=C0103
         return self.get_data('id')
 
@@ -14,9 +14,13 @@ class SoftLayerHardwareRouter(BaseSoftLayerObject):
     def domain(self):
         return self.get_data('domain')
 
-    @softlayer_property_format(order=1)
+    @softlayer_property_format(order=0)
     def hostname(self):
         return self.get_data('hostname')
+
+    @softlayer_property_format(label="FQDN", order=1)
+    def fqdn(self):
+        return self.get_data('fullyQualifiedDomainName')
 
     @softlayer_object_property(SoftLayerLocation, order=2)
     def datacenter(self):

@@ -69,3 +69,7 @@ class SoftLayerContainerProductOrder(BaseSoftLayerObject):
     @softlayer_property_format("Prorated Order Charge")
     def prorated_order_charge(self):
         return self.get_data('proratedOrderTotal')
+
+    @softlayer_object_property(SoftLayerLocation)
+    def location(self):
+        return self.get_data('locationObject')
