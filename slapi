@@ -1,12 +1,15 @@
 #!/usr/bin/env python
-"""usage: slapi [options] <command> [<args>...]
+"""SLAPI: SoftLayer API Command Line Tool 
 
-options:
-    -c, --config CONFIGFILE
-    -v, --verbose
-    -h, --help
+Usage: slapi [options] <command> [<args>...]
+
+Options:
+    -c, --config CONFIGFILE     Path to config file
+    -v, --verbose               Enable verbose logging
+    -h, --help                  Display help
 
 The most commonly used slapi commands are:
+    help            Display this message 
     commands        List available commands
     hardware        Hardware related commands (show, osreload, etc.)
     billing         Billing related commands (quotes, orders, etc.)
@@ -31,7 +34,7 @@ from util.helpers import configure_colors, error, warning
 
 VERSION = '0.1.0'
 MODULE_DIR = 'commands'
-BUILTINS = {'commands': 'list_commands'}
+BUILTINS = {'commands': 'list_commands', 'help': 'display_help'}
 
 DEFAULT_LOG_FILE = None
 DEFAULT_LOG_LEVEL = 'INFO'
@@ -127,6 +130,17 @@ def _handle_subcommand(module, func, subcommand_args):
 
     # Invoke subcommand
     func(subcommand_args)
+
+
+def display_help(args):
+    """
+    Print Help
+
+    Usage: slapi help [<command>]
+    """
+    print __doc__
+    sys.exit(0)
+
 
 def list_commands(args):
     """List available commands
