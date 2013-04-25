@@ -129,7 +129,7 @@ def _handle_subcommand(module, func, subcommand_args):
     func(subcommand_args)
 
 def list_commands(args):
-    """List available commands.
+    """List available commands
 
     Usage: slapi commands [<command>]
 

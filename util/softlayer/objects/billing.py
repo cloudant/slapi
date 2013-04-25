@@ -50,7 +50,7 @@ class SoftLayerContainerProductOrder(BaseSoftLayerObject):
     def __init__(self, obj):
         super(SoftLayerContainerProductOrder, self).__init__(obj)
 
-    @softlayer_property_format("Recurring Cost")
+    @softlayer_property_format(label="Recurring Cost", order=0)
     def post_tax_recurring_charge(self):
         return self.get_data('postTaxRecurring')
 
@@ -58,7 +58,7 @@ class SoftLayerContainerProductOrder(BaseSoftLayerObject):
     def pre_tax_recurring_charge(self):
         return self.get_data('preTaxRecurring')
 
-    @softlayer_property_format("Setup Cost")
+    @softlayer_property_format(label="Setup Cost", order=1)
     def post_tax_setup_charge(self):
         return self.get_data('postTaxSetup')
 
@@ -66,10 +66,14 @@ class SoftLayerContainerProductOrder(BaseSoftLayerObject):
     def pre_tax_setup_charge(self):
         return self.get_data('preTaxSetup')
 
-    @softlayer_property_format("Prorated Order Charge")
+    @softlayer_property_format(label="Prorated Order Charge", order=2)
     def prorated_order_charge(self):
         return self.get_data('proratedOrderTotal')
 
-    @softlayer_object_property(SoftLayerLocation)
+    @softlayer_property_format(label=False)
+    def currency_type(self):
+        return self.get_data('currencyShortName')
+
+    @softlayer_object_property(SoftLayerLocation, order=-1)
     def location(self):
         return self.get_data('locationObject')

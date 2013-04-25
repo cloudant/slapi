@@ -30,6 +30,15 @@ def _verify_order(quote_id, order_container):
     return verified_order_container
 
 
+def _place_order(quote_id, order_container):
+    order_service = get_service('SoftLayer_Billing_Order_Quote', quote_id)
+    log.debug("placing order for quote %d" % (quote_id))
+    placed_order_container = SoftLayerContainerProductOrder(
+            order_service.placeOrder(order_container._data))
+    log.debug("placed order for quote %d" % (quote_id))
+    return placed_order_container
+
+
 def _get_quote_product_orders(quote_id, mask): # pylint: disable-msg=C0103
     """Generator returning all product order containers for the given quote id"""
     quote_service = get_service('SoftLayer_Billing_Order_Quote', quote_id)
@@ -52,6 +61,8 @@ def _find_vlan(vlan_type, vlan_spec):
         # Lookup Public VLAN
         vlans = list(get_private_vlans(
             parse_vlan_spec(vlan_spec), vlan_object_mask))
+    else:
+        raise TypeError("Unknown vlan type: %s" % (vlan_type))
 
     if len(vlans) < 1:
         print error("No vlans found matching spec: %s" % (vlan_spec))
@@ -126,7 +137,7 @@ def orderquote(args):
     else:
         public_vlan = None
     if args['--network-private-vlan']:
-        private_vlan = _find_vlan('private', args['--network-public-vlan'])
+        private_vlan = _find_vlan('private', args['--network-private-vlan'])
     else:
         private_vlan = None
 
@@ -160,10 +171,41 @@ def orderquote(args):
     if private_vlan:
         hardware['primaryBackendNetworkComponent']['networkVlanId'] = private_vlan.id
 
-    pp(order_container._data)
-    verified_order_container = _verify_order(quote.id, order_container)
-    print verified_order_container.format()
-    pp(verified_order_container._data)
+    # Verify order
+    _verify_order(quote.id, order_container)
+
+    # Print Order Information
+
+    print colored("Quote:", fg='green', style='bright')
+    print quote.format()
+
+    server_name = ".".join([args['<hostname>'], args['<domain>']])
+    print colored("Public VLAN:", fg='green', style='bright')
+    if public_vlan:
+        print public_vlan.format()
+    else:
+        print "Default"
+    print colored("Private VLAN:", fg='green', style='bright')
+    if private_vlan:
+        print private_vlan.format()
+    else:
+        print "Default"
+
+    print colored("Order:", fg='green', style='bright')
+    print order_container.format()
+
+    print critical("You are about to order a server: %s." % (server_name), label="WARNING: ")
+    print critical("Monthly Cost: %s %s, Setup Cost: %s %s" % (
+        order_container.currency_type,
+        order_container.post_tax_recurring_charge,
+        order_container.currency_type,
+        order_container.post_tax_setup_charge
+        ), label="WARNING: ")
+    if confirm(colored("Are you sure you want to continue?", fg='red', style='bright')):
+        # Place Order
+        _place_order(quote.id, order_container)
+        print colored("Order Placed", fg='green', style='bright')
+        return
 
 
 def orders(args):

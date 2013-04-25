@@ -11,8 +11,10 @@ def get_objects(service_name, service_method_name, spec, mask):
     """Generator returning all objects for from a SoftLayer service"""
     account_service = get_service('SoftLayer_Account')
     account_service.set_object_mask(None)
-    log.debug("fetching all %s objects with %s", service_name, spec)
-    for obj in filter(spec, account_service.__getattr__(service_method_name)()):
+    log.debug("fetching all objects from %s.%s", 'SoftLayer_Account_Service', service_method_name)
+    objects = account_service.__getattr__(service_method_name)()
+    log.debug("found %d objects, filtering with %s", len(objects), spec)
+    for obj in filter(spec, objects):
         log.debug("fetching object id %d", obj['id'])
         service = get_service(service_name, obj['id'])
         service.set_object_mask(mask)

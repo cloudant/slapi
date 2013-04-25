@@ -23,9 +23,9 @@ def parse_vlan_spec(spec):
     # match vlan number 
     match = PATTERN_VLAN_NUMBER.match(spec)
     if match:
-        object_id = int(match.group(1))
-        # return function matching object id
-        return lambda obj: int(obj['vlanNumber']) == object_id
+        #vlan_number = int(match.group(1))
+        # return function matching vlan number
+        return lambda obj, vlan=int(match.group(1)): int(obj['vlanNumber']) == vlan
 
     raise TypeError("Unknown VLAN spec: %s" % (spec))
 
