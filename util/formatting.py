@@ -3,6 +3,7 @@ import colorama as COLORS
 COLOR_LABEL = COLORS.Fore.CYAN + COLORS.Style.BRIGHT
 COLOR_RESET = COLORS.Style.RESET_ALL
 
+
 def format_object(obj, level=0, color=True):
     output = ""
     if isinstance(obj, dict):

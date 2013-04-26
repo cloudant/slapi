@@ -34,9 +34,21 @@ def configure_colors():
 
 def colored(message, fg=None, bg=None, style=None):
     """Return a message colored with ANSI color codes"""
-    color_fg = getattr(COLORS.Fore, fg.upper()) if fg else COLORS.Fore.RESET
-    color_bg = getattr(COLORS.Back, bg.upper()) if bg else COLORS.Back.RESET
-    color_style = getattr(COLORS.Style, style.upper()) if style else COLORS.Style.NORMAL
+    if fg:
+        color_fg = getattr(COLORS.Fore, fg.upper())
+    else:
+        color_fg = COLORS.Fore.RESET
+
+    if bg:
+        color_bg = getattr(COLORS.Back, bg.upper())
+    else:
+        color_bg = COLORS.Back.RESET
+
+    if style:
+        color_style = getattr(COLORS.Style, style.upper())
+    else:
+        color_style = COLORS.Style.NORMAL
+
     return color_fg + color_bg + color_style + message + COLORS.Style.RESET_ALL
 
 
