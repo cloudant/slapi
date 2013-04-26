@@ -40,5 +40,5 @@ def show(args):
     location_spec = parse_location_spec(args['<location_spec>'])
     object_mask = _get_datacenter_object_mask()
 
-    for dc in _get_datacenters(location_spec, object_mask):
-        print dc.format()
+    for datacenter in _get_datacenters(location_spec, object_mask):
+        print datacenter.format()

@@ -5,13 +5,12 @@ Commands:
     network subnets         Show network subnets
     network vlans           Show network subnets
 """
-from pprint import pprint as pp
-
 from util.spec import parse_subnet_spec
 from util.spec import parse_vlan_spec
 from util.config import config
 from util.log import log
-from util.softlayer.service import get_vlans, get_private_vlans, get_public_vlans
+from util.softlayer.service import get_vlans
+from util.softlayer.service import get_private_vlans, get_public_vlans
 from util.softlayer.service import get_subnets
 from util.softlayer.service import build_vlan_object_mask
 from util.softlayer.service import build_subnet_object_mask
@@ -28,7 +27,7 @@ def subnets(args):
     """
     # Parse network_spec
     subnet_spec = parse_subnet_spec(args)
-    object_mask = build_subnet_object_mask() 
+    object_mask = build_subnet_object_mask()
 
     for subnet in get_subnets(subnet_spec, object_mask):
         print subnet.format()
@@ -47,7 +46,7 @@ def vlans(args):
         -F, --format FORMAT
         -h, --help
     """
-    # Parse vlan spec 
+    # Parse vlan spec
     vlan_spec = parse_vlan_spec(args['<vlan_spec>'])
     object_mask = build_vlan_object_mask(
         include_subnets=(args['--subnets'] is True))
@@ -55,13 +54,13 @@ def vlans(args):
     # Parse args
     if args['--public']:
         # get public vlans
-        vlans = get_public_vlans(vlan_spec, object_mask)
+        vlanlist = get_public_vlans(vlan_spec, object_mask)
     elif args['--private']:
         # get private vlans
-        vlans = get_private_vlans(vlan_spec, object_mask)
+        vlanlist = get_private_vlans(vlan_spec, object_mask)
     else:
         # get all vlans
-        vlans = get_vlans(vlan_spec, object_mask)
+        vlanlist = get_vlans(vlan_spec, object_mask)
 
     # Filter vlans by location of primary router
     if args['--location'] is not None:
@@ -69,5 +68,5 @@ def vlans(args):
     else:
         filter_func = lambda vlan: True
 
-    for vlan in filter(filter_func, vlans):
+    for vlan in filter(filter_func, vlanlist):
         print vlan.format()

@@ -68,7 +68,7 @@ class BaseSoftLayerObject(object):
             else:
                 return default
 
-    def format(self, color=True):
+    def format(self, format='text', color=True):
         obj = self._format()
         return format_object(obj, color=color)
 

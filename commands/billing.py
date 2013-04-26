@@ -8,13 +8,11 @@ Commands:
 """
 import sys
 
-from pprint import pprint as pp
-
+from util.config import config
+from util.log import log
 from util.helpers import error, warning, critical, colored, confirm
 from util.spec import parse_quote_spec, parse_order_spec
 from util.spec import parse_vlan_spec
-from util.config import config
-from util.log import log
 from util.softlayer.service import get_quotes, get_orders, get_service
 from util.softlayer.service import get_public_vlans, get_private_vlans
 from util.softlayer.service import build_vlan_object_mask
@@ -23,24 +21,24 @@ from util.softlayer.objects.billing import SoftLayerContainerProductOrder
 
 def _verify_order(quote_id, order_container):
     order_service = get_service('SoftLayer_Billing_Order_Quote', quote_id)
-    log.debug("verifying order for quote %d" % (quote_id))
+    log.debug("verifying order for quote %d", quote_id)
     verified_order_container = SoftLayerContainerProductOrder(
-            order_service.verifyOrder(order_container._data))
-    log.debug("verified order for quote %d" % (quote_id))
+        order_service.verifyOrder(order_container._data))
+    log.debug("verified order for quote %d", quote_id)
     return verified_order_container
 
 
 def _place_order(quote_id, order_container):
     order_service = get_service('SoftLayer_Billing_Order_Quote', quote_id)
-    log.debug("placing order for quote %d" % (quote_id))
+    log.debug("placing order for quote %d", quote_id)
     placed_order_container = SoftLayerContainerProductOrder(
-            order_service.placeOrder(order_container._data))
-    log.debug("placed order for quote %d" % (quote_id))
+        order_service.placeOrder(order_container._data))
+    log.debug("placed order for quote %d", quote_id)
     return placed_order_container
 
 
-def _get_quote_product_orders(quote_id, mask): # pylint: disable-msg=C0103
-    """Generator returning all product order containers for the given quote id"""
+def _get_quote_product_orders(quote_id, mask):  # pylint: disable-msg=C0103
+    """Generator returning all product order containers for the given quote"""
     quote_service = get_service('SoftLayer_Billing_Order_Quote', quote_id)
     quote_service.set_object_mask(mask)
     log.debug("fetching order container for quote id %d", quote_id)
@@ -51,7 +49,7 @@ def _get_quote_product_orders(quote_id, mask): # pylint: disable-msg=C0103
 
 def _find_vlan(vlan_type, vlan_spec):
     """Return a single public or private vlan matching spec"""
-    log.debug("looking up %s vlan %s" % (vlan_type, vlan_spec))
+    log.debug("looking up %s vlan %s", vlan_type, vlan_spec)
     vlan_object_mask = build_vlan_object_mask()
     if vlan_type == 'public':
         # Lookup Public VLAN
@@ -69,7 +67,8 @@ def _find_vlan(vlan_type, vlan_spec):
         sys.exit(1)
 
     if len(vlans) > 1:
-        print error("More then one vlan found matching spec: %s. Refusing to continue." % (vlan_spec))
+        print error("More then one vlan found matching spec: %s. "
+                    "Refusing to continue." % (vlan_spec))
         sys.exit(1)
 
     return vlans[0]
@@ -109,17 +108,21 @@ def orderquote(args):
     object_mask = None
 
     # Get Quotes
-    quotes = list(get_quotes(quote_spec, object_mask))
-    if len(quotes) < 1:
-        print warning("No quotes found matching spec: %s." % args['<quote_spec>'])
+    quotelist = list(get_quotes(quote_spec, object_mask))
+    if len(quotelist) < 1:
+        print warning("No quotes found matching spec: %s." % (
+            args['<quote_spec>']))
         sys.exit(1)
-    if len(quotes) > 1:
-        print error("More then one quote matching spec: %s. Refusing to continue." % args['<quote_spec>'])
+    if len(quotelist) > 1:
+        print error("More then one quote matching spec: %s. "
+                    "Refusing to continue." % args['<quote_spec>'])
         sys.exit(1)
 
     # Get Quote
-    quote = quotes[0]
-    log.debug("found quote: %d, name: %s, key: %s" % (quote.id, quote.name, quote.key))
+    quote = quotelist[0]
+    log.debug("found quote: %d, name: %s, key: %s", quote.id,
+              quote.name,
+              quote.key)
 
     # Get Orders Containers
     order_containers = list(_get_quote_product_orders(quote.id, None))
@@ -127,7 +130,8 @@ def orderquote(args):
         print error("Quote %d contains no product orders." % (quote.id))
         sys.exit(1)
     if len(order_containers) > 1:
-        print error("Quote %d contains more then one product orders. Refusing to continue." % (quote.id))
+        print error("Quote %d contains more then one product orders."
+                    "Refusing to continue." % (quote.id))
         sys.exit(1)
     order_container = order_containers[0]
 
@@ -156,7 +160,8 @@ def orderquote(args):
         sys.exit(1)
 
     # Set order type
-    order_container._data['complexType'] = 'SoftLayer_Container_Product_Order_Hardware_Server'
+    order_container._data['complexType'] = \
+        'SoftLayer_Container_Product_Order_Hardware_Server'
 
     # Get order hardware
     hardware = order_container._data['hardware'][0]
@@ -167,9 +172,11 @@ def orderquote(args):
 
     # Configure VLANs
     if public_vlan:
-        hardware['primaryNetworkComponent']['networkVlanId'] = public_vlan.id
+        hardware['primaryNetworkComponent']['networkVlanId'] = \
+            public_vlan.id
     if private_vlan:
-        hardware['primaryBackendNetworkComponent']['networkVlanId'] = private_vlan.id
+        hardware['primaryBackendNetworkComponent']['networkVlanId'] = \
+            private_vlan.id
 
     # Verify order
     _verify_order(quote.id, order_container)
@@ -194,14 +201,16 @@ def orderquote(args):
     print colored("Order:", fg='green', style='bright')
     print order_container.format()
 
-    print critical("You are about to order a server: %s." % (server_name), label="WARNING: ")
+    print critical("You are about to order a server: %s." % (server_name),
+                   label="WARNING: ")
     print critical("Monthly Cost: %s %s, Setup Cost: %s %s" % (
         order_container.currency_type,
         order_container.post_tax_recurring_charge,
         order_container.currency_type,
-        order_container.post_tax_setup_charge
-        ), label="WARNING: ")
-    if confirm(colored("Are you sure you want to continue?", fg='red', style='bright')):
+        order_container.post_tax_setup_charge), label="WARNING: ")
+    if confirm(colored("Are you sure you want to continue?",
+                       fg='red',
+                       style='bright')):
         # Place Order
         _place_order(quote.id, order_container)
         print colored("Order Placed", fg='green', style='bright')
@@ -218,7 +227,7 @@ def orders(args):
         -h, --help
 
     """
-    order_spec = parse_order_spec(args )
+    order_spec = parse_order_spec(args)
     object_mask = None
 
     for order in get_orders(order_spec, object_mask):

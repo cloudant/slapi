@@ -52,15 +52,16 @@ def _get_root_directory():
 
 def _get_installed_modules():
     """Generator returning all commands in MODULE_DIR"""
-    for f in os.listdir(os.path.join(_get_root_directory(), MODULE_DIR)):
-        if (not f.startswith('.') and
-                not f.startswith('_') and
-                f.endswith('.py')):
-            yield os.path.splitext(f)[0]
+    for filename in os.listdir(os.path.join(_get_root_directory(), MODULE_DIR)):
+        if (not filename.startswith('.') and
+                not filename.startswith('_') and
+                filename.endswith('.py')):
+            yield os.path.splitext(filename)[0]
 
 
 def _get_builtin_commands():
-    for command,func in BUILTINS.iteritems():
+    """ Generator returning builtin commands"""
+    for command, _func in BUILTINS.iteritems():
         yield command
 
 
@@ -68,7 +69,7 @@ def _load_command_module(name):
     """Import given command module"""
     try:
         module = getattr(__import__('.'.join([MODULE_DIR, name])), name)
-        log.debug("loaded module: %s" % ('.'.join([MODULE_DIR, name])))
+        log.debug("loaded module: %s", '.'.join([MODULE_DIR, name]))
         return module
     except ImportError:
         print error(traceback.format_exc())
@@ -78,13 +79,13 @@ def _load_command_module(name):
 
 def _get_module_commands(module):
     """Generator returning all commands in the given module"""
-    for func_name, value in inspect.getmembers(module):
+    for func_name, _func in inspect.getmembers(module):
         if not func_name.startswith('_'):
             yield func_name
 
 
 def _handle_command(module, global_args):
-    log.debug("_handle_command: %s" % (module.__name__))
+    log.debug("_handle_command: %s", module.__name__)
 
     # Get command
     command = global_args['<command>']
@@ -126,7 +127,7 @@ def _handle_command(module, global_args):
 
 
 def _handle_subcommand(module, func, subcommand_args):
-    log.debug("_handle_subcommand: %s.%s" % (module.__name__, func.__name__))
+    log.debug("_handle_subcommand: %s.%s", module.__name__, func.__name__)
 
     # Invoke subcommand
     func(subcommand_args)
@@ -178,6 +179,8 @@ def list_commands(args):
         print command_name.ljust(ljust), command_doc.split('\n')[0]
 
 def main():
+    """SLAPI Main"""
+
     # Configure Colors
     configure_colors()
 
