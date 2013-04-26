@@ -1,7 +1,7 @@
 import string  # pylint: disable-msg=W0402
 
 from collections import OrderedDict
-from util.helpers import format_object
+from util.formatting import format_object
 
 
 class softlayer_property(object):  # pylint: disable-msg=C0103
