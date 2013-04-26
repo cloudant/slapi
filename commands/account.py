@@ -1,10 +1,7 @@
-"""usage: slapi [options] account <command> [<args>...]
+"""
+Usage: slapi account <command> [<args>...]
 
-options:
-    -v, --verbose
-    -h, --help
-
-commands:
+Commands:
     account show               Show account
 """
 

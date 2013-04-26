@@ -109,7 +109,7 @@ def transactions(args):
 
 
 def osreload(args):
-    """Perform OS reload
+    """Execute OS reload
 
     Usage: slapi hardware osreload [options] [<hardware_spec>]
 

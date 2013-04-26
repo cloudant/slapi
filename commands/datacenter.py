@@ -12,7 +12,7 @@ from util.softlayer.service import build_datacenter_object_mask
 
 
 def show(args):
-    """Show datacenter
+    """Show datacenters
 
     Usage: slapi datacenter show [options] [<location_spec>]
 
