@@ -60,7 +60,7 @@ def _get_installed_modules():
 
 
 def _get_builtin_commands():
-    """ Generator returning builtin commands"""
+    """Generator returning builtin commands"""
     for command, _func in BUILTINS.iteritems():
         yield command
 
@@ -77,7 +77,7 @@ def _load_command_module(name):
     return None
 
 
-def _get_module_commands(module):
+def _get_command_module_subcommands(module):
     """Generator returning all commands in the given module"""
     for func_name, _func in inspect.getmembers(module):
         if not func_name.startswith('_'):
@@ -94,7 +94,7 @@ def _handle_command(module, global_args):
     if len(global_args['<args>']) > 0:
         # Get subcommand
         subcommand = global_args['<args>'][0]
-        if subcommand in list(_get_module_commands(module)):
+        if subcommand in list(_get_command_module_subcommands(module)):
             # Get subcommand function from module
             func = getattr(module, subcommand)
 
@@ -134,8 +134,7 @@ def _handle_subcommand(module, func, subcommand_args):
 
 
 def display_help(args):
-    """
-    Print Help
+    """Display slapi help
 
     Usage: slapi help [<command>]
     """
@@ -150,23 +149,29 @@ def list_commands(args):
 
     """
 
+    # Build a dict of commands to docstrings
     command_list = OrderedDict()
+
+    # Get builtin commands
+    for command in _get_builtin_commands():
+        # Get command function from module
+        command_func = getattr(sys.modules[__name__], BUILTINS[command])
+        command_list[command] = command_func.__doc__ 
 
     # Get installed modules
     for command in _get_installed_modules():
-
         # Load command module
         module = _load_command_module(command)
-
         # Get command module subcommands
         for subcommand, subcommand_func in inspect.getmembers(module):
-            if subcommand.startswith('_'):
-                continue
             if inspect.isfunction(subcommand_func) == False:
+                continue
+            if subcommand.startswith('_'):
                 continue
             if subcommand_func.__module__ != module.__name__:
                 continue
             if subcommand == "main":
+                # TODO: Handle main commands 
                 continue
 
             command_name = "%s %s" % (command, subcommand)
@@ -175,8 +180,10 @@ def list_commands(args):
     # Calculate ljust
     ljust = max(map(lambda k: len(k) if k else 0, command_list.keys())) + 4
 
+    # Display commands
+    print "Available Commands:"
     for command_name, command_doc in command_list.iteritems():
-        print command_name.ljust(ljust), command_doc.split('\n')[0]
+        print "  ", command_name.ljust(ljust), command_doc.split('\n')[0]
 
 def main():
     """SLAPI Main"""
