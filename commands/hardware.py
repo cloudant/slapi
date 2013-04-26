@@ -96,7 +96,7 @@ def transactions(args):
     """
     # Parse Arguments
     hardware_spec = parse_hardware_spec(args)
- 
+
     # Hardware Mmask should include transaction info
     object_mask = {'activeTransactions': {},
                     'lastTransaction': {

@@ -5,8 +5,9 @@ options:
     -h, --help
 
 commands:
-    account show               Show account 
+    account show               Show account
 """
+
 
 def main(args):
     """usage: slapi [options] account [<args>...]

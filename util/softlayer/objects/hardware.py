@@ -129,32 +129,37 @@ class SoftLayerHardwareServer(BaseSoftLayerObject):
     def serial_number(self):
         return self.get_data('serialNumber')
 
-    @softlayer_object_property(SoftLayerTransaction, label="Last Transaction", order=10)
+    @softlayer_object_property(SoftLayerTransaction,
+                               label="Last Transaction", order=10)
     def last_transaction(self):
         return self.get_data('lastTransaction')
 
-    @softlayer_object_property(SoftLayerTransaction, label="Active Transactions", order=11)
+    @softlayer_object_property(SoftLayerTransaction,
+                               label="Active Transactions", order=11)
     def active_transactions(self):
         return self.get_data('activeTransactions')
 
-    @softlayer_object_property(SoftLayerHardwareComponent, label="Processors", order=12)
+    @softlayer_object_property(SoftLayerHardwareComponent,
+                               label="Processors", order=12)
     def processors(self):
         return self.get_data('processors')
 
-    @softlayer_object_property(SoftLayerHardwareComponent, label="Disks", order=13)
+    @softlayer_object_property(SoftLayerHardwareComponent,
+                               label="Disks", order=13)
     def disks(self):
         return self.get_data('hardDrives')
 
-    @softlayer_object_property(SoftLayerHardwareComponent, label="Memory", order=14)
+    @softlayer_object_property(SoftLayerHardwareComponent,
+                               label="Memory", order=14)
     def memory(self):
         return self.get_data('memory')
 
-    @softlayer_object_property(SoftLayerHardwareComponent, label="Motherboard", order=15)
+    @softlayer_object_property(SoftLayerHardwareComponent,
+                               label="Motherboard", order=15)
     def motherboard(self):
         return self.get_data('motherboard')
 
-    @softlayer_object_property(SoftLayerNetworkComponent, label="NICs", order=16)
+    @softlayer_object_property(SoftLayerNetworkComponent,
+                               label="NICs", order=16)
     def nics(self):
         return self.get_data('networkComponents')
-
-

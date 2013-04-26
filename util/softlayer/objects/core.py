@@ -1,9 +1,10 @@
-import string # pylint: disable-msg=W0402
+import string  # pylint: disable-msg=W0402
 
 from collections import OrderedDict
 from util.helpers import format_object
 
-class softlayer_property(object): # pylint: disable-msg=C0103
+
+class softlayer_property(object):  # pylint: disable-msg=C0103
     def __init__(self, method):
         self.method = method
         self.__name__ = method.__name__
@@ -19,9 +20,10 @@ class softlayer_property(object): # pylint: disable-msg=C0103
     def __delete__(self, inst):
         raise AttributeError("This property is read-only")
 
+
 def softlayer_property_format(label=None, order=1000):
     """factory function for softlayer_property__format_decorator"""
-    def softlayer_property_format_decorator(func): # pylint: disable-msg=C0103
+    def softlayer_property_format_decorator(func):  # pylint: disable-msg=C0103
         @softlayer_property
         def wrapped_f(*args):
             return func(*args)
@@ -31,9 +33,10 @@ def softlayer_property_format(label=None, order=1000):
         return wrapped_f
     return softlayer_property_format_decorator
 
+
 def softlayer_object_property(object_type, label=None, order=1000):
     """factory function for softlayer_object_property_decorator"""
-    def softlayer_object_property_decorator(func): # pylint: disable-msg=C0103
+    def softlayer_object_property_decorator(func):  # pylint: disable-msg=C0103
         @softlayer_property
         def wrapped_f(*args):
             data = func(*args)
@@ -52,6 +55,7 @@ def softlayer_object_property(object_type, label=None, order=1000):
         wrapped_f.property_order = order
         return wrapped_f
     return softlayer_object_property_decorator
+
 
 class BaseSoftLayerObject(object):
     """Base SoftLayer Object"""
@@ -81,7 +85,7 @@ class BaseSoftLayerObject(object):
             property_order = getattr(method, 'property_order', 1000)
             keys.append((key, property_order))
 
-        # build ordered dict from keys sorted by property_order 
+        # build ordered dict from keys sorted by property_order
         for key, _order in sorted(keys, key=lambda i: i[1]):
             yield (key, self.__class__.__dict__[key])
 
@@ -91,13 +95,13 @@ class BaseSoftLayerObject(object):
         for key, method in self._gather_properties_to_format():
             if isinstance(method, softlayer_property):
 
-                # Get property label 
+                # Get property label
                 property_label = getattr(method, 'property_label', key)
 
-                if property_label == False:
+                if property_label is False:
                     # If label is false, dont format
                     continue
-                elif property_label == None or property_label == key:
+                elif property_label is None or property_label == key:
                     # If label is None, assume format is just the keyname
                     property_label = string.capwords(' '.join(key.split('_')))
 
@@ -116,6 +120,7 @@ class BaseSoftLayerObject(object):
                     if property_value is not None:
                         obj[property_label] = property_value
         return obj
+
 
 class SoftLayerAccountAddress(BaseSoftLayerObject):
     """SoftLayer_Account_Address"""
@@ -151,6 +156,7 @@ class SoftLayerAccountAddress(BaseSoftLayerObject):
     def country(self):
         return self.get_data('country')
 
+
 class SoftLayerLocation(BaseSoftLayerObject):
     """SoftLayer_Location"""
 
@@ -173,6 +179,7 @@ class SoftLayerLocation(BaseSoftLayerObject):
     def address(self):
         return self.get_data('locationAddress')
 
+
 class SoftLayerTransactionGroup(BaseSoftLayerObject):
     """SoftLayer_Provisioning_Version1_Transaction_Group"""
 
@@ -187,6 +194,7 @@ class SoftLayerTransactionGroup(BaseSoftLayerObject):
     def average_time(self):
         return self.get_data('averageTimeToComplete')
 
+
 class SoftLayerTransactionStatus(BaseSoftLayerObject):
     """SoftLayer_Provisioning_Version1_Transaction_Status"""
 
@@ -199,6 +207,7 @@ class SoftLayerTransactionStatus(BaseSoftLayerObject):
             return self.get_data('friendlyName')
         else:
             return self.get_data('name')
+
 
 class SoftLayerTransaction(BaseSoftLayerObject):
     """SoftLayer_Provisioning_Version1_Transaction"""

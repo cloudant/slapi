@@ -2,18 +2,21 @@ import SoftLayer.API
 
 from util.log import log
 from util.config import config
+from util.softlayer.objects.core import SoftLayerLocation
 from util.softlayer.objects.network import SoftLayerNetworkVLAN
 from util.softlayer.objects.network import SoftLayerNetworkSubnet
 from util.softlayer.objects.billing import SoftLayerBillingOrderQuote
 from util.softlayer.objects.billing import SoftLayerBillingOrder
 
+
 def get_objects(service_name, service_method_name, spec, mask):
     """Generator returning all objects for from a SoftLayer service"""
     account_service = get_service('SoftLayer_Account')
     account_service.set_object_mask(None)
-    log.debug("fetching all objects from %s.%s", 'SoftLayer_Account_Service', service_method_name)
+    log.debug("fetching all objects from %s.%s", 'SoftLayer_Account_Service',
+              service_method_name)
     objects = account_service.__getattr__(service_method_name)()
-    log.debug("found %d objects, filtering with %s", len(objects), spec)
+    log.debug("found %d objects, filter`ing with %s", len(objects), spec)
     for obj in filter(spec, objects):
         log.debug("fetching object id %d", obj['id'])
         service = get_service(service_name, obj['id'])
@@ -33,13 +36,21 @@ def get_service(name, object_id=None):
 #==============================================================================
 
 
-def build_subnet_object_mask(**kwargs):
+def build_datacenter_object_mask(**_kwargs):
+    object_mask = dict()
+    object_mask['locationAddress'] = dict()
+    return object_mask
+
+
+def build_subnet_object_mask(**_kwargs):
+    """Return object mask for subnet"""
     object_mask = dict()
     object_mask['networkVlan'] = {}
     return object_mask
 
 
 def build_vlan_object_mask(include_routers=True, include_subnets=False):
+    """Return object mask for VLAN"""
     object_mask = dict()
     if include_routers:
         object_mask['primaryRouter'] = dict()
@@ -60,13 +71,15 @@ def build_vlan_object_mask(include_routers=True, include_subnets=False):
 
 def get_quotes(quote_spec, mask):
     """Generator returning all quotes matching quote_spec"""
-    for obj in get_objects('SoftLayer_Billing_Order_Quote', 'getQuotes', quote_spec, mask):
+    for obj in get_objects('SoftLayer_Billing_Order_Quote', 'getQuotes',
+                           quote_spec, mask):
         yield SoftLayerBillingOrderQuote(obj)
 
 
 def get_orders(order_spec, mask):
     """Generator returning all orders matching quote_spec"""
-    for obj in get_objects('SoftLayer_Billing_Order', 'getOrders', order_spec, mask):
+    for obj in get_objects('SoftLayer_Billing_Order', 'getOrders',
+                           order_spec, mask):
         yield SoftLayerBillingOrder(obj)
 
 
@@ -77,23 +90,41 @@ def get_orders(order_spec, mask):
 
 def get_subnets(subnet_spec, mask):
     """Generator returning network subnets matching subnet_spec"""
-    for obj in get_objects('SoftLayer_Network_Subnet', 'getSubnets', subnet_spec, mask):
+    for obj in get_objects('SoftLayer_Network_Subnet', 'getSubnets',
+                           subnet_spec, mask):
         yield SoftLayerNetworkSubnet(obj)
 
 
 def get_vlans(vlan_spec, mask):
     """Generator returning primary network vlans matching subnet_spec"""
-    for obj in get_objects('SoftLayer_Network_Vlan', 'getNetworkVlans', vlan_spec, mask):
+    for obj in get_objects('SoftLayer_Network_Vlan', 'getNetworkVlans',
+                           vlan_spec, mask):
         yield SoftLayerNetworkVLAN(obj)
 
 
 def get_public_vlans(vlan_spec, mask):
     """Generator returning public network vlans matching vlan_spec"""
-    for obj in get_objects('SoftLayer_Network_Vlan', 'getPublicNetworkVlans', vlan_spec, mask):
+    for obj in get_objects('SoftLayer_Network_Vlan', 'getPublicNetworkVlans',
+                           vlan_spec, mask):
         yield SoftLayerNetworkVLAN(obj)
 
 
 def get_private_vlans(vlan_spec, mask):
     """Generator returning private network vlans matching vlan_spec"""
-    for obj in get_objects('SoftLayer_Network_Vlan', 'getPrivateNetworkVlans', vlan_spec, mask):
+    for obj in get_objects('SoftLayer_Network_Vlan', 'getPrivateNetworkVlans',
+                           vlan_spec, mask):
         yield SoftLayerNetworkVLAN(obj)
+
+
+#==============================================================================
+# Network
+#==============================================================================
+
+
+def get_datacenters(location_spec, mask):
+    """Generator returning datacenters matching location_spec"""
+    datacenter_service = get_service('SoftLayer_Location_Datacenter')
+    datacenter_service.set_object_mask(mask)
+    for obj in filter(location_spec,
+                      datacenter_service.getViewableDatacenters()):
+        yield SoftLayerLocation(obj)

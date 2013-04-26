@@ -1,5 +1,6 @@
 from util.softlayer.objects.core import *
 
+
 class SoftLayerHardwareRouter(BaseSoftLayerObject):
     """SoftLayer_Hardware_Router"""
 
@@ -26,6 +27,7 @@ class SoftLayerHardwareRouter(BaseSoftLayerObject):
     def datacenter(self):
         return self.get_data('datacenter')
 
+
 class SoftLayerNetworkSubnet(BaseSoftLayerObject):
 
     def __init__(self, obj):
@@ -37,7 +39,8 @@ class SoftLayerNetworkSubnet(BaseSoftLayerObject):
 
     @softlayer_property_format(order=0)
     def name(self):
-        return "%s/%d" % (self.get_data('networkIdentifier'), self.get_data('cidr'))
+        return "%s/%d" % (self.get_data('networkIdentifier'),
+                          self.get_data('cidr'))
 
     @softlayer_property_format(order=3)
     def netmask(self):

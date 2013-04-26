@@ -1,5 +1,6 @@
 from util.softlayer.objects.core import *
 
+
 class SoftLayerBillingOrder(BaseSoftLayerObject):
     """SoftLayer_Billing_Order"""
 
@@ -17,6 +18,7 @@ class SoftLayerBillingOrder(BaseSoftLayerObject):
     @softlayer_property
     def create_date(self):
         return self.get_data('createDate')
+
 
 class SoftLayerBillingOrderQuote(BaseSoftLayerObject):
     """SoftLayer_Billing_Order_Quote"""
@@ -43,6 +45,7 @@ class SoftLayerBillingOrderQuote(BaseSoftLayerObject):
     @softlayer_property
     def create_date(self):
         return self.get_data('createDate')
+
 
 class SoftLayerContainerProductOrder(BaseSoftLayerObject):
     """SoftLayer_Container_Product_Order"""

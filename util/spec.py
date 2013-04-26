@@ -4,6 +4,7 @@ PATTERN_OBJECT_ID = re.compile(r'^(\d+)$')
 PATTERN_IP_ADDRESS = re.compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
 PATTERN_VLAN_NUMBER = re.compile(r'^(\d+)$')
 
+
 def _identity_spec(obj):
     return True
 
@@ -20,30 +21,35 @@ def parse_vlan_spec(spec):
     if spec is None:
         return _identity_spec
 
-    # match vlan number 
+    # match vlan number
     match = PATTERN_VLAN_NUMBER.match(spec)
     if match:
-        #vlan_number = int(match.group(1))
+        # get vlan number
+        vlan_number = int(match.group(1))
         # return function matching vlan number
-        return lambda obj, vlan=int(match.group(1)): int(obj['vlanNumber']) == vlan
+        return lambda obj, vlan=vlan_number: int(obj['vlanNumber']) == vlan
 
     raise TypeError("Unknown VLAN spec: %s" % (spec))
 
 
 def parse_location_spec(spec):
+    """
+    location_spec := object_id | name
+    """
     if spec is None:
         return _identity_spec
 
     # match object id
     match = PATTERN_OBJECT_ID.match(spec)
     if match:
+        # get object id
         object_id = int(match.group(1))
         # return function matching object id
-        return lambda o: int(o['id']) == object_id 
+        return lambda o, obj_id=object_id: int(o['id']) == obj_id
 
     # match quote name
     datacenter_name = spec
-    return lambda d: re.search(datacenter_name, d['name']) != None
+    return lambda d: re.search(datacenter_name, d['name']) is not None
 
 
 def parse_quote_spec(spec):
@@ -62,7 +68,8 @@ def parse_quote_spec(spec):
 
     # match quote name
     quote_name = spec
-    return lambda q: re.search(quote_name, q['name']) != None
+    return lambda q: re.search(quote_name, q['name']) is not None
+
 
 def parse_hardware_spec(args):
     """
@@ -74,7 +81,7 @@ def parse_hardware_spec(args):
         if spec is None:
             return _identity_spec
 
-        # match hardware object id 
+        # match hardware object id
         match = PATTERN_OBJECT_ID.match(spec)
         if match:
             hardware_id = int(match.group(1))
@@ -87,11 +94,11 @@ def parse_hardware_spec(args):
             hardware_address = spec
             # return functing matching ip address
             return lambda h: (h['primaryIpAddress'] == hardware_address or
-                h['primaryBackendIpAddress'] == hardware_address)
+                              h['primaryBackendIpAddress'] == hardware_address)
 
         # Match hardware fqdn
         hardware_name = spec
-        return lambda h: re.search(hardware_name, h['fullyQualifiedDomainName']) != None
+        return lambda h: re.search(hardware_name, h['fullyQualifiedDomainName']) is not None
     else:
         # return identity spec (matches all objects)
         return _identity_spec

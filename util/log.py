@@ -3,6 +3,7 @@ import logging
 
 log = logging.getLogger('slapi')
 
+
 def configure_log(log, log_level):
     # Clear existing log handlers
     log.handlers = []
@@ -17,7 +18,7 @@ def configure_log(log, log_level):
         log.warn("Unknown logging level: %s" % (log_level))
         log.setLevel(logging.INFO)
 
-    # Configure Handler 
+    # Configure Handler
     streamhandler = logging.StreamHandler(sys.stdout)
     streamhandler.setFormatter(formatter)
     log.addHandler(streamhandler)

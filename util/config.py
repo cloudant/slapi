@@ -2,6 +2,7 @@ import json
 
 config = dict()
 
+
 def _load_config(configfile):
     global config
     fh = None
